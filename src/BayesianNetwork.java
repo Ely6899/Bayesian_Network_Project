@@ -22,6 +22,7 @@ public class BayesianNetwork {
     //Amount of nodes in the Bayesian network.
     private final int count;
 
+
     /**
      * The bayesian network constructor builds the simplistic variable nodes, which act as simple data containers.
      * And then it constructs the Factor nodes, which are the advanced VariableNode nodes, represented with a full
@@ -34,10 +35,12 @@ public class BayesianNetwork {
         factorNodes = addFactorNodesToNetwork();
     }
 
+
     @Override
     public String toString() {
         return factorNodes.toString();
     }
+
 
     /**
      * This functions acts as a builder of the document class, which will be able to read through
@@ -62,6 +65,7 @@ public class BayesianNetwork {
             throw new RuntimeException(e.getMessage());
         }
     }
+
 
     /**
      * Generates the network's primitive variable nodes, returns them as an array list.
@@ -132,6 +136,7 @@ public class BayesianNetwork {
             int[] indexArr = new int[colCount]; //Arr representing vars value indices.
             int[] outcomeCountArr = new int[colCount]; //Each var outcome count in order. Used for permutation calculations.
 
+            //Gets the row count of the factor table.
             for(int j = 0; j < outcomeCountArr.length; j++){
                 int currOutcomeCount = getNodeByName(vars[j]).getOutcomeCount();
                 outcomeCountArr[j] = currOutcomeCount;
@@ -147,15 +152,15 @@ public class BayesianNetwork {
         return factorNodes;
     }
 
+
     /**
      * This function iterates over all available options it can iterate through, given each
      * var's count of outcomes. The arrays are aligned in a matching order, since order of elements
      * is constant throughout the functions.
      * @param indexArr Array of indices representing pointers to vars values in order.
      * @param outcomeCounts Array of the count of outcomes for each var in order(needed for modulu calculations).
-     * @return Iterated indexArr.
      */
-    private int[] permutateByOneFromLeft(int[] indexArr, int[] outcomeCounts){
+    private void permutateByOneFromLeft(int[] indexArr, int[] outcomeCounts){
         int prevVal = indexArr[0];
 
         indexArr[0] += 1;
@@ -169,8 +174,8 @@ public class BayesianNetwork {
                 indexArr[lastIndexPointer] %= outcomeCounts[lastIndexPointer];
             }
         }
-        return indexArr;
     }
+
 
     /**
      * Numbers won't work for us when we wish to locate probabilities given queries.
@@ -189,89 +194,132 @@ public class BayesianNetwork {
     }
 
 
-
-    //Finds whenever you can infer probability without calculations.
+    /**
+     * Returns whenever the names given from a permutation allow fetching the probability value directly.
+     * @param names String array of vars from a given permutation.
+     * @return true whenever a probability value can be fetched directly(without calculations) from the given names.
+     */
     private boolean getProbabilityValue(String[] names){
-        Factor factor = getFactorTableByName(names[0]);
+        Factor factor = getFactorByName(names[0]);
         String[] evidence = new String[names.length - 1];
         System.arraycopy(names, 1 , evidence, 0, names.length - 1);
         return Arrays.equals(factor.getFactorParents(), evidence);
     }
 
 
-    public void func1(String[] names, String[] truthTableArr) {
+    /**
+     * This is the simple deduction function designed to deduct a query's probability in the most 'brute force' approach way.
+     * This function also keeps track of the addition and multiplication amounts the algorithm performs to calculate the probability.
+     * The algorithm performs this by iterating through the possible permutations the query holds, which depends on the
+     * amount of non-vars which were not passed in the query.
+     * The Iteration of those permutations works with an appropriate array representing the index positioning of the non-vars
+     * values. The iterating of those pointers is done with the helper function permutateByOne().
+     * Each permutation of the non-vars is kept in a table, and is united with the vars table, which also iterates in values for normalization
+     * purposes. The union of the vars and non-vars tables is done with the helper function tableUnion().
+     * For each valid full permutation, we multiply each var in the permutation, with the given parents each has, while maintaining the truth
+     * values for each var multiplied, throughout the entire multiplication. This is done in the helper function getValueFromGivenPermutation(),
+     * which also uses the helper function getProbabilityValue() for fetching the specific probability value given the vars values.
+     * In the end, after each iteration is done, normalize, and print the probability value, followed by the number of addition and multiplications,
+     * respectively.
+     * @param names Names of the given query.
+     * @param truthValsArr The values given with the names in the same order.
+     */
+    public void func1(String[] names, String[] truthValsArr) {
+        //Decimal format for correct answer printing.
         DecimalFormat decimalFormat = new DecimalFormat("#.#####");
 
         //If query can be obtainable directly
         if (getProbabilityValue(names)) {
-            Hashtable<TableKey, Double> factorTable = getFactorTableByName(names[0]).getFactorTable();
-            TableKey tableKey = new TableKey(truthTableArr);
+            Hashtable<TableKey, Double> factorTable = getFactorByName(names[0]).getFactorTable();
+            TableKey tableKey = new TableKey(truthValsArr);
             System.out.println(factorTable.get(tableKey));
         } else {
             List<String> nameList = Arrays.asList(names);
-            String[] nonEvidence = new String[count - names.length]; //Non-evidence array.
+            String[] nonVars = new String[count - names.length]; //Non-vars array.
             int additionPermutationCount = 1;
             int insertionTemp = 0;
-            for (int i = 0; i < variableNodes.size(); i++) {
-                VariableNode currVariable = variableNodes.get(i);
+
+            //Loop iterates through all variable nodes. If a node isn't in the list, it is considered nonVar.
+            //This loop builds the nonVars array.
+            for (VariableNode currVariable : variableNodes) {
                 if (!nameList.contains(currVariable.getVariableNodeName())) {
                     additionPermutationCount *= currVariable.getOutcomeCount();
-                    nonEvidence[insertionTemp++] = currVariable.getVariableNodeName();
+                    nonVars[insertionTemp++] = currVariable.getVariableNodeName();
                 }
             }
-            int additionCount = ((additionPermutationCount - 1) * getNodeByName(names[0]).getOutcomeCount()) + 1;//Last addition is normalization addition.
-            int multiCount = (count - 1) * additionPermutationCount * getNodeByName(names[0]).getOutcomeCount();
+
+            int additionCountFromFormula = ((additionPermutationCount - 1) * getNodeByName(names[0]).getOutcomeCount()) + 1;//Last addition is normalization addition.
+            int multiCountConstFromFormula = (count - 1) * additionPermutationCount * getNodeByName(names[0]).getOutcomeCount();
             double numerator = 0;
             double secondaryOptions = 0;
 
+            /*
+             Storing all outcomes of the query main name which allows iterating through all possible probabilities
+             of it, since it requires them all for normalization.
+             */
             String[] queryNameOutcomes = getNodeByName(names[0]).getPossibleOutcomes();
 
-            for(int nameOutcomeIndex = 0; nameOutcomeIndex < queryNameOutcomes.length; nameOutcomeIndex++){
+            int additionCount = -1; //Addition counter.
+            int multiCount = 0; //Multiplication counter.
+            //This loop deals with building the proper vars-values table. Also checks whenever the permutation is the numerator one required.
+            for (String queryNameOutcome : queryNameOutcomes) {
                 Hashtable<String, String> evidenceTable = new Hashtable<>();
-                if(nameOutcomeIndex == 0){
-                    //The constant query values of the given evidence variables.
-                    for (int i = 0; i < names.length; i++) {
-                        evidenceTable.put(names[i], truthTableArr[i]);
+                boolean numeratorFlag = false;
+                for (int row = 0; row < names.length; row++) {
+                    //Insertion of the main var.
+                    if (row == 0) {
+                        evidenceTable.put(names[row], queryNameOutcome);
                     }
-                }
-                else{
-                    for(int i = 0; i < names.length; i++){
-                        if(i == 0)
-                            evidenceTable.put(names[i], queryNameOutcomes[nameOutcomeIndex]);
-                        else{
-                            evidenceTable.put(names[i], truthTableArr[i]);
-                        }
+                    //Insertion of the rest of the vars(Non-main ones)
+                    else {
+                        evidenceTable.put(names[row], truthValsArr[row]); //Insertion values from parents are constant from given query
                     }
-                }
-                //This part of the code handles addition of all possible permutations.
-                int[] outcomeIndices = new int[nonEvidence.length];
-                int[] outcomeCount = new int[nonEvidence.length];
-                for (int i = 0; i < nonEvidence.length; i++) {
-                    outcomeCount[i] = getNodeByName(nonEvidence[i]).getOutcomeCount();
                 }
 
+                //Checks whenever current iteration relates to the permutation needed to add to the numerator.
+                if (queryNameOutcome.equals(truthValsArr[0]))
+                    numeratorFlag = true;
+
+                //This part of the code handles addition of all possible permutations.
+                int[] outcomeIndices = new int[nonVars.length];
+                int[] outcomeCount = new int[nonVars.length];
+
+                //Get outcome counts of non-vars in respective order.
+                for (int i = 0; i < nonVars.length; i++) {
+                    outcomeCount[i] = getNodeByName(nonVars[i]).getOutcomeCount();
+                }
+
+                //Iterate through all permutations
                 for (int i = 0; i < additionPermutationCount; i++) {
                     Hashtable<String, String> nonEvidenceTable = new Hashtable<>();
-                    for (int j = 0; j < nonEvidence.length; j++) {
-                        VariableNode currNode = getNodeByName(nonEvidence[j]);
-                        nonEvidenceTable.put(currNode.getVariableNodeName(), currNode.getPossibleOutcomes()[outcomeIndices[j]]);
+                    for (int j = 0; j < nonVars.length; j++) {
+                        VariableNode currNode = getNodeByName(nonVars[j]);
+                        nonEvidenceTable.put(currNode.getVariableNodeName(), currNode.getPossibleOutcomes()[outcomeIndices[j]]); //Insert respective outcome value.
                     }
-                    if(nameOutcomeIndex == 0)
+                    if (numeratorFlag)
                         numerator += getValueFromGivenPermutation(tableUnion(evidenceTable, nonEvidenceTable));
-                    else{
+                    else
                         secondaryOptions += getValueFromGivenPermutation(tableUnion(evidenceTable, nonEvidenceTable));
-                    }
-                    permutateByOne(outcomeIndices, outcomeCount);
+
+                    permutateByOne(outcomeIndices, outcomeCount);//After each iteration, permutate the outcome index array by 1.
+
+                    additionCount++;
+                    multiCount += (count - 1);
                 }
             }
             double normalizationAlpha = numerator + secondaryOptions;
-            System.out.println(decimalFormat.format(numerator / normalizationAlpha)+","+additionCount+","+multiCount);
-
+            if(additionCount == additionCountFromFormula && multiCount == multiCountConstFromFormula)
+                System.out.println(decimalFormat.format(numerator / normalizationAlpha)+","+additionCount+","+multiCount);
         }
     }
 
 
-    private int[] permutateByOne(int[] indexArr, int[] outcomeCounts){
+    /**
+     * Iterates the given index array by one. Iteration is pointed from the right to the left.
+     * @param indexArr Array of indices representing pointers to vars values in order.
+     * @param outcomeCounts Array of the count of outcomes for each var in order(needed for modulu calculations).
+     */
+    private void permutateByOne(int[] indexArr, int[] outcomeCounts){
         int indexArrLength = indexArr.length;
         int prevVal = indexArr[indexArrLength - 1];
         indexArr[indexArrLength - 1] += 1;
@@ -283,9 +331,16 @@ public class BayesianNetwork {
                 indexArr[j - 1] %= outcomeCounts[j - 1];
             }
         }
-        return indexArr;
     }
 
+
+    /**
+     * This function is used to unite 2 Hash-tables into 1 Hash-table.
+     * The function unites the first table with the second, and returns the table assigned to the first table parameter, in its new form.
+     * @param table1 Hash-table of vars and their values.
+     * @param table2 Hash-table of vars and their values(Usually the vars are non-evidence).
+     * @return A new united table of vars and values, representing a permutation.
+     */
     private Hashtable<String, String> tableUnion(Hashtable<String, String> table1, Hashtable<String, String> table2){
         Enumeration<String> keySetOfTable2 = table2.keys();
         for(int i = 0; i < table2.keySet().size(); i++){
@@ -295,23 +350,33 @@ public class BayesianNetwork {
         return table1;
     }
 
+
+    /**
+     * This function Calculates the probability value of the given permutation, represented by a Hash-table.
+     * @param permutationTable Hash-table representing a permutation.
+     * @return probability value of the given permutation.
+     */
     private double getValueFromGivenPermutation(Hashtable<String, String> permutationTable){
         double result = 1;
         Enumeration<String> keySet = permutationTable.keys();
         for(int i = 0; i < permutationTable.size(); i++){
             String variable = keySet.nextElement();
             VariableNode currVar = getNodeByName(variable);
-            String[] multiParamVarCount = new String[currVar.getVarCount()];
-            multiParamVarCount[0] = variable;
-            for(int j = 1; j < multiParamVarCount.length; j++){
-                multiParamVarCount[j] = currVar.getParents()[j - 1];
+            String[] vars = new String[currVar.getVarCount()];
+            vars[0] = variable;
+            //Get the relevant vars array from the given variable name in the iteration.
+            for(int j = 1; j < vars.length; j++){
+                vars[j] = currVar.getParents()[j - 1];
             }
-            if(getProbabilityValue(multiParamVarCount)){
-                String[] varsTruthTable = new String[multiParamVarCount.length];//Factor key to look for
-                for(int m = 0; m < multiParamVarCount.length; m++){
-                    varsTruthTable[m] = permutationTable.get(multiParamVarCount[m]);
+
+            if(getProbabilityValue(vars)){
+                String[] varsTruthTable = new String[vars.length];//Factor key to look for
+
+                //Get the truth values of each var, according to the input of the permutation table.
+                for(int m = 0; m < vars.length; m++){
+                    varsTruthTable[m] = permutationTable.get(vars[m]);
                 }
-                result *= getFactorTableByName(variable).getFactorTable().get(new TableKey(varsTruthTable));
+                result *= getFactorByName(variable).getFactorTable().get(new TableKey(varsTruthTable));//Multiply probability.
             }
         }
         return result;
@@ -320,7 +385,7 @@ public class BayesianNetwork {
 
     public void func2(String[] names, String[] truthTableArr){
         if(getProbabilityValue(names)){
-            Hashtable<TableKey, Double> factorTable = getFactorTableByName(names[0]).getFactorTable();
+            Hashtable<TableKey, Double> factorTable = getFactorByName(names[0]).getFactorTable();
             TableKey tableKey = new TableKey(truthTableArr);
             System.out.println(factorTable.get(tableKey));
         }
@@ -328,7 +393,7 @@ public class BayesianNetwork {
 
     public void func3(String[] names, String[] truthTableArr){
         if(getProbabilityValue(names)){
-            Hashtable<TableKey, Double> factorTable = getFactorTableByName(names[0]).getFactorTable();
+            Hashtable<TableKey, Double> factorTable = getFactorByName(names[0]).getFactorTable();
             TableKey tableKey = new TableKey(truthTableArr);
             System.out.println(factorTable.get(tableKey));
         }
@@ -369,6 +434,7 @@ public class BayesianNetwork {
         return null;
     }
 
+
     /**
      * Gets the parents of a given variable node in a form of the parent nodes
      * in an array.
@@ -385,7 +451,14 @@ public class BayesianNetwork {
         return parents;
     }
 
-    public Factor getFactorTableByIndex(int index) throws RuntimeException{
+
+    /**
+     * This function returns the Factor object located in the index which was given.
+     * @param index Index of the array list.
+     * @return Factor object in the index given.
+     * @throws IndexOutOfBoundsException Whenever the array list doesn't contain given index.
+     */
+    public Factor getFactorByIndex(int index) throws IndexOutOfBoundsException{
         try{
             return factorNodes.get(index);
         } catch (IndexOutOfBoundsException e){
@@ -393,11 +466,17 @@ public class BayesianNetwork {
         }
     }
 
-    public Factor getFactorTableByName(String name) {
+
+    /**
+     * Returns the factor object corresponding to the name that was asked.
+     * @param name Name of the factor object we wish to find in the array list.
+     * @return Returns the factor object when it was found by name comparisons in iteration. Returns null otherwise.
+     */
+    public Factor getFactorByName(String name) {
         name = name.replace(" ", "");
         for (int i = 0; i < factorNodes.size(); i++) {
             if (name.equals(factorNodes.get(i).getFactorName()))
-                return getFactorTableByIndex(i);
+                return getFactorByIndex(i);
         }
         return null;
     }

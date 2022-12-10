@@ -18,7 +18,7 @@ public class TableKey {
 
     /*
     * This documentation refers to both equals() and hashCode() methods!:
-    * equals() is overridden in order to allow the program to properly compare between the keys.
+    * equals() is overridden in order to allow the program to properly compare between TableKey objects.
     * hashCode() is overridden in order to allow fetching hashMap values by specifying values of TableKey.
     * */
     @Override

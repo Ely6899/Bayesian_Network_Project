@@ -110,7 +110,7 @@ public class Ex1 {
         }
     }
 
-    //Main will run the xml reading function, which will parse the input, the XML, and run throught the input file.
+    //Main will run the xml reading function, which will parse the input, the XML, and run through the input file.
     public static void main(String[] args) {
         readFromXmlInputFile("input.txt");
     }

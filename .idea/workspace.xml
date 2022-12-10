@@ -4,12 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Initial commit. Main implemented and documented.">
-      <change afterPath="$PROJECT_DIR$/src/Factor.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/TableKey.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/VariableNode.java" afterDir="false" />
+    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Implemented function 1">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/BayesianNetwork.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/BayesianNetwork.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Ex1.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Ex1.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/TableKey.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/TableKey.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,13 +41,15 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/ely6899/IdeaProjects/BayesianNetworkProject/src&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "TODO_SCOPE": "All Places",
+    "last_opened_file_path": "/home/ely6899/IdeaProjects/BayesianNetworkProject/src",
+    "settings.editor.selected.configurable": "preferences.toDoOptions"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="" />
@@ -56,6 +57,20 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src" />
     </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="Ex1" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Ex1" />
+      <module name="BayesianNetworkProject" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Ex1" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -73,7 +88,14 @@
       <option name="project" value="LOCAL" />
       <updated>1670604886141</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Implemented function 1">
+      <created>1670623137540</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1670623137540</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -89,21 +111,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initial commit. Main implemented and documented." />
-    <option name="LAST_COMMIT_MESSAGE" value="Initial commit. Main implemented and documented." />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-method">
-          <url>file://$PROJECT_DIR$/src/BayesianNetwork.java</url>
-          <line>119</line>
-          <properties class="BayesianNetwork" method="addFactorNodesToNetwork">
-            <option name="EMULATED" value="true" />
-            <option name="WATCH_EXIT" value="false" />
-          </properties>
-          <option name="timeStamp" value="4" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <MESSAGE value="Implemented function 1" />
+    <option name="LAST_COMMIT_MESSAGE" value="Implemented function 1" />
   </component>
 </project>
