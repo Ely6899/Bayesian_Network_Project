@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class BayesianNetwork {
     //Nodes of the xml values as is.
@@ -129,9 +130,10 @@ public class BayesianNetwork {
             VariableNode currVariable = variableNodes.get(i);
 
             int colCount = currVariable.getVarCount(); //Each var is a column
-            int rowCount = 1; //Amount of possible permutations. Depends on product of each column's outcome count.
             String[] vars = currVariable.getVars(); //Should equal to column count.
             double[] probabilities = currVariable.getProbabilities(); //Probabilities to be inserted according to variable.
+            int rowCount = probabilities.length; //Amount of possible permutations. Depends on product of each column's outcome count.
+
 
             int[] indexArr = new int[colCount]; //Arr representing vars value indices.
             int[] outcomeCountArr = new int[colCount]; //Each var outcome count in order. Used for permutation calculations.
@@ -140,7 +142,6 @@ public class BayesianNetwork {
             for(int j = 0; j < outcomeCountArr.length; j++){
                 int currOutcomeCount = getNodeByName(vars[j]).getOutcomeCount();
                 outcomeCountArr[j] = currOutcomeCount;
-                rowCount *= currOutcomeCount;
             }
 
             for(int j = 0; j < rowCount; j++){
@@ -161,18 +162,24 @@ public class BayesianNetwork {
      * @param outcomeCounts Array of the count of outcomes for each var in order(needed for modulu calculations).
      */
     private void permutateByOneFromLeft(int[] indexArr, int[] outcomeCounts){
-        int prevVal = indexArr[0];
 
-        indexArr[0] += 1;
-        indexArr[0] %= outcomeCounts[0];
+        //Index array splitting.
+        int[] nameArrHelperString  = Arrays.copyOfRange(indexArr, 0, 1);
+        int[] parentHelperArr = Arrays.copyOfRange(indexArr, 1, indexArr.length);
 
-        for(int i = 0; i < indexArr.length - 1; i++){
-            int lastIndexPointer = indexArr.length - 1 - i;
-            if(indexArr[i] == 0 && prevVal != 0){
-                prevVal = indexArr[lastIndexPointer];
-                indexArr[lastIndexPointer] += 1;
-                indexArr[lastIndexPointer] %= outcomeCounts[lastIndexPointer];
+        if(parentHelperArr.length == 0){
+            indexArr[0]++;
+        }
+        else{
+            int prevVal = nameArrHelperString[0];
+            nameArrHelperString[0] += 1;
+            nameArrHelperString[0] %= outcomeCounts[0];
+
+            if(prevVal != 0 && prevVal == outcomeCounts[0] - 1){
+                permutateByOne(parentHelperArr, Arrays.copyOfRange(outcomeCounts, 1, outcomeCounts.length));
             }
+            indexArr[0] = nameArrHelperString[0];
+            System.arraycopy(parentHelperArr, 0, indexArr, 1, indexArr.length - 1);
         }
     }
 
@@ -308,8 +315,7 @@ public class BayesianNetwork {
                 }
             }
             double normalizationAlpha = numerator + secondaryOptions;
-            if(additionCount == additionCountFromFormula && multiCount == multiCountConstFromFormula)
-                System.out.println(decimalFormat.format(numerator / normalizationAlpha)+","+additionCount+","+multiCount);
+            System.out.println(decimalFormat.format(numerator / normalizationAlpha)+","+additionCountFromFormula+","+multiCountConstFromFormula);
         }
     }
 
@@ -324,11 +330,13 @@ public class BayesianNetwork {
         int prevVal = indexArr[indexArrLength - 1];
         indexArr[indexArrLength - 1] += 1;
         indexArr[indexArrLength - 1] %= outcomeCounts[indexArrLength - 1];
+        boolean nextSwitch = true;
         for(int j = indexArr.length - 1; j >=1; j--){
-            if(indexArr[j] == 0 && prevVal != 0){
+            if(nextSwitch &&(indexArr[j] == 0 && prevVal == outcomeCounts[j] - 1 && prevVal != 0)){
                 prevVal = indexArr[j - 1];
                 indexArr[j - 1] += 1;
                 indexArr[j - 1] %= outcomeCounts[j - 1];
+                nextSwitch = indexArr[j - 1] == 0 && prevVal == outcomeCounts[j - 1] - 1 && prevVal != 0;
             }
         }
     }
