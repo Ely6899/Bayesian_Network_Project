@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class BayesianNetwork {
     //Nodes of the xml values as is.
@@ -259,15 +258,13 @@ public class BayesianNetwork {
             int multiCountConstFromFormula = (count - 1) * additionPermutationCount * getNodeByName(names[0]).getOutcomeCount();
             double numerator = 0;
             double secondaryOptions = 0;
-
+            int additionCount = 0, multiCount = 0;
             /*
              Storing all outcomes of the query main name which allows iterating through all possible probabilities
              of it, since it requires them all for normalization.
              */
             String[] queryNameOutcomes = getNodeByName(names[0]).getPossibleOutcomes();
 
-            int additionCount = -1; //Addition counter.
-            int multiCount = 0; //Multiplication counter.
             //This loop deals with building the proper vars-values table. Also checks whenever the permutation is the numerator one required.
             for (String queryNameOutcome : queryNameOutcomes) {
                 Hashtable<String, String> evidenceTable = new Hashtable<>();
@@ -309,13 +306,12 @@ public class BayesianNetwork {
                         secondaryOptions += getValueFromGivenPermutation(tableUnion(evidenceTable, nonEvidenceTable));
 
                     permutateByOne(outcomeIndices, outcomeCount);//After each iteration, permutate the outcome index array by 1.
-
-                    additionCount++;
                     multiCount += (count - 1);
+                    additionCount++;
                 }
             }
             double normalizationAlpha = numerator + secondaryOptions;
-            System.out.println(decimalFormat.format(numerator / normalizationAlpha)+","+additionCountFromFormula+","+multiCountConstFromFormula);
+            System.out.println(decimalFormat.format(numerator / normalizationAlpha)+","+(additionCount - 1)+","+multiCount);
         }
     }
 
@@ -391,12 +387,54 @@ public class BayesianNetwork {
     }
 
 
+    /**
+     * func2() calculates the probability of a given query, and its values by performing variable elimination on the factors,
+     * which greatly reduces the number of calculations required to reach the answer.
+     * @param names Names of the given query.
+     * @param truthTableArr The values given with the names in the same order.
+     */
     public void func2(String[] names, String[] truthTableArr){
-        if(getProbabilityValue(names)){
-            Hashtable<TableKey, Double> factorTable = getFactorByName(names[0]).getFactorTable();
-            TableKey tableKey = new TableKey(truthTableArr);
-            System.out.println(factorTable.get(tableKey));
+        //Decimal format for correct answer printing.
+        DecimalFormat decimalFormat = new DecimalFormat("#.#####");
+
+        //Relevant data gathering.
+        ArrayList<Factor> tempFactors = new ArrayList<>();
+        for(Factor factor: factorNodes){
+            try {
+                tempFactors.add((Factor) factor.clone());
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
         }
+
+        List<String> nameList = Arrays.asList(names);
+        String[] hidden = new String[count - names.length]; //Non-vars array.
+        int insertionTemp = 0;
+
+        //Loop iterates through all variable nodes. If a node isn't in the list, it is considered hidden.
+        //This loop builds the hidden array.
+        for (VariableNode currVariable : variableNodes) {
+            if (!nameList.contains(currVariable.getVariableNodeName())) {
+                hidden[insertionTemp++] = currVariable.getVariableNodeName();
+            }
+        }
+
+        String[] evidence = new String[names.length - 1];
+        System.arraycopy(names, 1, evidence, 0, evidence.length);
+        String[] query = new String[1];
+        query[0] = names[0];
+
+        //Loop of instantiations.
+        for(int temp = 0; temp < evidence.length; temp++){
+            String checkedVar = evidence[temp]; //Variable we with to instantiate in tables
+            String checkedVarValue = truthTableArr[temp + 1]; //Value of the variable we wish to keep.
+            //Iterate through all factors of given evidence to filter.
+            for (Factor currFactor : tempFactors) {
+                if (currFactor.varInFactor(checkedVar))
+                    currFactor.instantiate(checkedVar, checkedVarValue);
+            }
+        }
+        System.out.println(tempFactors);
     }
 
     public void func3(String[] names, String[] truthTableArr){

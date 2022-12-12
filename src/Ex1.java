@@ -69,7 +69,6 @@ public class Ex1 {
                 //This is the first iteration of the line reader, reading the given xml file name.
                 //Parsing of the XML is done in BayesianNetwork class.
                 bayesianNetwork = new BayesianNetwork(line);
-                System.out.println(bayesianNetwork);
                 line = br.readLine();
             } catch (IOException e) {
                 throw new RuntimeException(e);

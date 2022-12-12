@@ -33,4 +33,8 @@ public class TableKey {
     public int hashCode() {
         return Arrays.hashCode(keys);
     }
+
+    public String[] getKeys(){
+        return this.keys;
+    }
 }
