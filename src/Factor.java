@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.Comparator;
 
 public class Factor implements Cloneable{
     private final String factorName; //Factor node name.
@@ -20,12 +21,17 @@ public class Factor implements Cloneable{
     }
 
 
-
     @Override
     public String toString() {
         return "P("+this.factorName + "|" + Arrays.toString(parents) + ") => " + factorTable.toString() + "\n";
     }
 
+
+    /**
+     * Clones a factor object by value.
+     * @return The same object, cloned by value.
+     * @throws CloneNotSupportedException Whenever object doesn't support the cloning method.
+     */
     @Override
     protected Object clone() throws CloneNotSupportedException {
         Factor factorClone = null;
@@ -40,6 +46,27 @@ public class Factor implements Cloneable{
         return factorClone;
     }
 
+
+    /**
+     * Performs comparison between two factor tables in relation to table row count.
+     */
+    public static Comparator<Factor> factorComparator = (factor1, factor2) -> {
+        int sizeFactor1 = factor1.getFactorSize();
+        int sizeFactor2 = factor2.getFactorSize();
+
+        int asciiFactor1 = factor1.getAsciiSumOfVars();
+        int asciiFactor2 = factor2.getAsciiSumOfVars();
+
+        //Ascending order
+        return (sizeFactor1 - sizeFactor2) + (asciiFactor1 - asciiFactor2);
+    };
+
+
+    /**
+     * Performs instantiation of a single factor, by filtering the given var, with the value given in the val parameter.
+     * @param var Variable we wish to instantiate.
+     * @param val Value of the variable we wish to instantiate. Meaning, filter the variable by given value.
+     */
     public void instantiate(String var, String val){
         String[] factorVars = this.getFactorVars();
         int varIndex = 0;
@@ -63,6 +90,12 @@ public class Factor implements Cloneable{
 
     }
 
+
+    /**
+     * Checks whenever
+     * @param var Variable to search.
+     * @return true whenever the variable is located in given Factor instance. false otherwise.
+     */
     public boolean varInFactor(String var){
         String[] factorVars = getFactorVars();
         for (String factorVar : factorVars) {
@@ -116,10 +149,46 @@ public class Factor implements Cloneable{
         return factorVars;
     }
 
+
+    /**
+     * Returns the number of rows of the factor table.
+     * @return The number of rows of the factor table.
+     */
+    public int getFactorSize(){
+        return this.factorTable.size();
+    }
+
+
+    /**
+     * Sums the ascii value of all variables in the factor.
+     * @return The sum of each ascii value of a variable.
+     */
+    public int getAsciiSumOfVars(){
+        String[] vars = this.getFactorVars();
+        int sum = 0;
+
+        for(String var : vars){
+            for(int i = 0; i < var.length(); i++){
+                sum += var.charAt(i);
+            }
+        }
+        return sum;
+    }
+
+
+    /**
+     * Sets the parents array of a given Factor with the new newParents parameter.
+     * @param newParents String array of new parents.
+     */
     private void setParents(String[] newParents){
         this.parents = newParents;
     }
 
+
+    /**
+     * Sets the Factor's factor-table field.
+     * @param newFactorTable new factor-table value.
+     */
     private void setFactorTable(Hashtable<TableKey, Double> newFactorTable){
         this.factorTable = newFactorTable;
     }

@@ -4,12 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Finalized and fixed bugs of permutation functions.&#10;bignet xml first function results tested and approved">
+    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Implemented factor tables instantiation">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/BayesianNetwork.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/BayesianNetwork.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Ex1.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Ex1.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Factor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Factor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/TableKey.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/TableKey.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -111,7 +110,14 @@
       <option name="project" value="LOCAL" />
       <updated>1670788416271</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Implemented factor tables instantiation">
+      <created>1670869113777</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1670869113777</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -130,7 +136,8 @@
     <MESSAGE value="Implemented function 1" />
     <MESSAGE value="Fixed logical bugs in function 1 and in factor building.&#10;Finalized documentation until function 1." />
     <MESSAGE value="Finalized and fixed bugs of permutation functions.&#10;bignet xml first function results tested and approved" />
-    <option name="LAST_COMMIT_MESSAGE" value="Finalized and fixed bugs of permutation functions.&#10;bignet xml first function results tested and approved" />
+    <MESSAGE value="Implemented factor tables instantiation" />
+    <option name="LAST_COMMIT_MESSAGE" value="Implemented factor tables instantiation" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -143,24 +150,6 @@
           <properties class="java.util.ConcurrentModificationException" package="java.util" />
           <option name="timeStamp" value="12" />
         </breakpoint>
-        <line-breakpoint enabled="true" type="java-method">
-          <url>file://$PROJECT_DIR$/src/BayesianNetwork.java</url>
-          <line>395</line>
-          <properties class="BayesianNetwork" method="func2">
-            <option name="EMULATED" value="true" />
-            <option name="WATCH_EXIT" value="false" />
-          </properties>
-          <option name="timeStamp" value="14" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-method">
-          <url>file://$PROJECT_DIR$/src/Factor.java</url>
-          <line>41</line>
-          <properties class="Factor" method="instantiate">
-            <option name="EMULATED" value="true" />
-            <option name="WATCH_EXIT" value="false" />
-          </properties>
-          <option name="timeStamp" value="15" />
-        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>

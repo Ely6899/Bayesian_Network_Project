@@ -131,20 +131,20 @@ public class BayesianNetwork {
             int colCount = currVariable.getVarCount(); //Each var is a column
             String[] vars = currVariable.getVars(); //Should equal to column count.
             double[] probabilities = currVariable.getProbabilities(); //Probabilities to be inserted according to variable.
-            int rowCount = probabilities.length; //Amount of possible permutations. Depends on product of each column's outcome count.
+            //int rowCount = probabilities.length; //Amount of possible permutations. Depends on product of each column's outcome count.
 
 
             int[] indexArr = new int[colCount]; //Arr representing vars value indices.
             int[] outcomeCountArr = new int[colCount]; //Each var outcome count in order. Used for permutation calculations.
 
-            //Gets the row count of the factor table.
+            //Build outcome counts array of the factor table.
             for(int j = 0; j < outcomeCountArr.length; j++){
                 int currOutcomeCount = getNodeByName(vars[j]).getOutcomeCount();
                 outcomeCountArr[j] = currOutcomeCount;
             }
 
-            for(int j = 0; j < rowCount; j++){
-                factorTable.put(fromIndexToValues(indexArr, vars), probabilities[j]); //Table insertion.(Local factor)
+            for (double probability : probabilities) {
+                factorTable.put(fromIndexToValues(indexArr, vars), probability); //Table insertion.(Local factor)
                 permutateByOneFromLeft(indexArr, outcomeCountArr); //Index permutation added by 1.
             }
             factorNodes.add(new Factor(currVariable.getVariableNodeName(), currVariable.getParents(), factorTable));
@@ -254,8 +254,8 @@ public class BayesianNetwork {
                 }
             }
 
-            int additionCountFromFormula = ((additionPermutationCount - 1) * getNodeByName(names[0]).getOutcomeCount()) + 1;//Last addition is normalization addition.
-            int multiCountConstFromFormula = (count - 1) * additionPermutationCount * getNodeByName(names[0]).getOutcomeCount();
+            //int additionCountFromFormula = ((additionPermutationCount - 1) * getNodeByName(names[0]).getOutcomeCount()) + 1;//Last addition is normalization addition.
+            //int multiCountConstFromFormula = (count - 1) * additionPermutationCount * getNodeByName(names[0]).getOutcomeCount();
             double numerator = 0;
             double secondaryOptions = 0;
             int additionCount = 0, multiCount = 0;
@@ -434,7 +434,19 @@ public class BayesianNetwork {
                     currFactor.instantiate(checkedVar, checkedVarValue);
             }
         }
-        System.out.println(tempFactors);
+        Arrays.sort(hidden); //Sort hidden variables(For variable elimination alphabetical order)
+
+        for(String hiddenString: hidden) {
+            ArrayList<Factor> hiddenFactors = new ArrayList<>();
+
+            //Find all factors that contain the hidden evidence that will be eliminated
+            for (Factor currFactor : tempFactors) {
+                if (currFactor.varInFactor(hiddenString))
+                    hiddenFactors.add(currFactor);
+            }
+
+            Collections.sort(hiddenFactors, Factor.factorComparator); //Sort by table size(ascending)
+        }
     }
 
     public void func3(String[] names, String[] truthTableArr){
