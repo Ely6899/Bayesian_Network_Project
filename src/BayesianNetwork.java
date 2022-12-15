@@ -9,6 +9,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -238,7 +239,7 @@ public class BayesianNetwork {
         if (getProbabilityValue(names)) {
             Hashtable<TableKey, Double> factorTable = getFactorByName(names[0]).getFactorTable();
             TableKey tableKey = new TableKey(truthValsArr);
-            System.out.println(factorTable.get(tableKey));
+            System.out.println(factorTable.get(tableKey) + ",0,0");
         } else {
             List<String> nameList = Arrays.asList(names);
             String[] nonVars = new String[count - names.length]; //Non-vars array.
@@ -328,7 +329,7 @@ public class BayesianNetwork {
         indexArr[indexArrLength - 1] %= outcomeCounts[indexArrLength - 1];
         boolean nextSwitch = true;
         for(int j = indexArr.length - 1; j >=1; j--){
-            if(nextSwitch &&(indexArr[j] == 0 && prevVal == outcomeCounts[j] - 1 && prevVal != 0)){
+            if((nextSwitch &&(indexArr[j] == 0 && prevVal == outcomeCounts[j] - 1))){
                 prevVal = indexArr[j - 1];
                 indexArr[j - 1] += 1;
                 indexArr[j - 1] %= outcomeCounts[j - 1];
@@ -426,7 +427,7 @@ public class BayesianNetwork {
 
         //Loop of instantiations.
         for(int temp = 0; temp < evidence.length; temp++){
-            String checkedVar = evidence[temp]; //Variable we with to instantiate in tables
+            String checkedVar = evidence[temp]; //Variable we wish to instantiate in tables
             String checkedVarValue = truthTableArr[temp + 1]; //Value of the variable we wish to keep.
             //Iterate through all factors of given evidence to filter.
             for (Factor currFactor : tempFactors) {
@@ -436,8 +437,9 @@ public class BayesianNetwork {
         }
         Arrays.sort(hidden); //Sort hidden variables(For variable elimination alphabetical order)
 
+        ArrayList<Factor> afterEliminationFactors = new ArrayList<>();
         for(String hiddenString: hidden) {
-            ArrayList<Factor> hiddenFactors = new ArrayList<>();
+            ArrayList<Factor> hiddenFactors = new ArrayList<>(); //List of all factors that contain the hidden value.
 
             //Find all factors that contain the hidden evidence that will be eliminated
             for (Factor currFactor : tempFactors) {
@@ -445,9 +447,188 @@ public class BayesianNetwork {
                     hiddenFactors.add(currFactor);
             }
 
-            Collections.sort(hiddenFactors, Factor.factorComparator); //Sort by table size(ascending)
+            Collections.sort(hiddenFactors, Factor.factorComparator); //Sort by table size and variable ASCII sum(ascending)
+
+            //Joining loop
+            for(int i = 1; i < hiddenFactors.size(); i++){
+                join(hiddenFactors.get(i -1), hiddenFactors.get(i));
+            }
+
+            /*
+            * Elimination to implement here
+            * */
+
+            afterEliminationFactors.add(hiddenFactors.get(hiddenFactors.size() - 1)); //Add last factor from hidden factors after elimination.
         }
     }
+
+
+    private void join(Factor prevFactor, Factor currFactor){
+        String[] currVars = currFactor.getFactorVars();
+        String[] prevVars = prevFactor.getFactorVars();
+        Hashtable<String, String[]> varOutComes = new Hashtable<>(); //HashTable containing each var's possible outcomes.
+        ArrayList<String> newTableVars = new ArrayList<>(); //Keeps the order of insertions in check.
+
+        //Updates relevant vars of joined table from the prev factor.
+        for(String var: prevVars){
+            String[] outcomeArray = getOutcomesFromGivenFactorColumn(prevFactor,prevVars,var);
+            if(!varOutComes.containsKey(var) && outcomeArray.length > 1){
+                newTableVars.add(var);
+                varOutComes.put(var, getOutcomesFromGivenFactorColumn(prevFactor,prevVars,var));
+            }
+        }
+
+        //Updates relevant vars of joined table from the prev factor.
+        for(String var: currVars){
+            String[] outcomeArray = getOutcomesFromGivenFactorColumn(currFactor,currVars,var);
+            if(!varOutComes.containsKey(var) && outcomeArray.length > 1){
+                newTableVars.add(var);
+                varOutComes.put(var, getOutcomesFromGivenFactorColumn(currFactor,currVars,var));
+            }
+        }
+
+        int[] outcomeCounts = new int[newTableVars.size()];
+        for(int i = 0; i < varOutComes.size(); i++){
+            outcomeCounts[i] = varOutComes.get(newTableVars.get(i)).length;
+        }
+        int[] indexArr = new int[outcomeCounts.length];
+
+        //Iterate through outcomeCounts array to get new joined table's number of rows.
+        int rows = 1;
+        for (int outcomeCount : outcomeCounts) {
+            rows *= outcomeCount;
+        }
+
+        Hashtable<TableKey, Double> joinedTable = new Hashtable<>(); //New joined table.
+        //Iterate to build joined table(Key wise)
+        for(int i = 0; i < rows; i++){
+            TableKey newKey = fromIndexToValuesTable(indexArr, newTableVars, varOutComes);
+            joinedTable.put(newKey, 1.0);
+            permutateByOne(indexArr, outcomeCounts);
+        }
+
+        /*
+        * Joined table calculations
+        * */
+
+
+        currFactor.setFactorTable(joinedTable);
+        currFactor.setVars(newTableVars.toArray(new String[0]));
+    }
+
+    private Double getProductOfJoinedKey(String[] keys, Factor prevFactor, Factor currFactor, ArrayList<String> newTableVars, String hidden) {
+        Double answer = 1.0;
+
+        //Value fetching from prevFactor.
+        //The same will be applied to currFactor.
+        ArrayList<Integer> currFactorVarIndices = new ArrayList<>();
+        String[] prevFactorVars = prevFactor.getFactorVars();
+        int lowerKeysIndex = 0;
+        int higherKeysIndex = 0;
+        for(int column = 0; column < prevFactorVars.length; column++){
+            if(newTableVars.contains(prevFactorVars[column])){
+                currFactorVarIndices.add(column);
+                higherKeysIndex++;
+            }
+        }
+
+        String[] newKeysPrevSplit = new String[higherKeysIndex - lowerKeysIndex];
+        System.arraycopy(keys, lowerKeysIndex, newKeysPrevSplit, lowerKeysIndex, higherKeysIndex - lowerKeysIndex); //New keys split to be compared.
+
+        Enumeration<TableKey> prevFactorKeys = prevFactor.getFactorTable().keys();
+        while(prevFactorKeys.hasMoreElements()){
+            String[] currKey = prevFactorKeys.nextElement().getKeys(); //Current key array of the table(full).
+            String[] filteredKey = new String[newKeysPrevSplit.length]; //New key after filtering relevant keys to the joint table(Ignore evidence).
+            int temp = 0;
+
+            for(int i = 0; i < currKey.length; i++){
+                //If current index represents a desired var.
+                if(currFactorVarIndices.contains(i)){
+                    filteredKey[temp] = currKey[i];
+                }
+            }
+            //If filtered key matches related filtered key in joint table multiply value to .
+            if(Arrays.equals(filteredKey, newKeysPrevSplit)){
+                answer *= prevFactor.getFactorTable().get(new TableKey(currKey));
+                break;
+            }
+        }
+
+
+        currFactorVarIndices.clear();
+        String[] currFactorVars = currFactor.getFactorVars();
+        lowerKeysIndex = higherKeysIndex;
+        higherKeysIndex = keys.length;
+
+        for(int column = 0; column < currFactorVars.length; column++){
+            if(newTableVars.contains(currFactorVars[column]) && !currFactorVars[column].equals(hidden)){
+                currFactorVarIndices.add(column);
+            }
+        }
+
+        String[] newKeysCurrSplit = new String[higherKeysIndex - lowerKeysIndex];
+        int counter = 0;
+        //New keys split to be compared.
+        for(int i = lowerKeysIndex; i < higherKeysIndex; i++){
+            newKeysCurrSplit[counter++] = keys[i];
+        }
+
+        Enumeration<TableKey> currFactorKeys = currFactor.getFactorTable().keys();
+        while(currFactorKeys.hasMoreElements()){
+            String[] currKey = currFactorKeys.nextElement().getKeys(); //Current key array of the table(full).
+            String[] filteredKey = new String[newKeysCurrSplit.length]; //New key after filtering relevant keys to the joint table(Ignore evidence).
+            int temp = 0;
+
+            for(int i = 0; i < currKey.length; i++){
+                //If current index represents a desired var.
+                if(currFactorVarIndices.contains(i)){
+                    filteredKey[temp] = currKey[i];
+                }
+            }
+            //If filtered key matches related filtered key in joint table multiply value to .
+            if(Arrays.equals(filteredKey, newKeysCurrSplit)){
+                answer *= currFactor.getFactorTable().get(new TableKey(currKey));
+                break;
+            }
+        }
+        return answer;
+    }
+
+
+    private TableKey fromIndexToValuesTable(int[] indexArr, ArrayList<String> varList, Hashtable<String, String[]> varTable){
+        String[] values = new String[indexArr.length];
+        for(int i = 0; i < varList.size(); i++){
+            values[i] = varTable.get(varList.get(i))[indexArr[i]];
+        }
+        return new TableKey(values);
+    }
+
+    private String[] getOutcomesFromGivenFactorColumn(Factor factor, String[] vars, String var){
+        int varIndex = -1;
+        for(int i = 0; i < vars.length; i++){
+            if(vars[i].equals(var)){
+                varIndex = i;
+                break;
+            }
+        }
+
+        ArrayList<String> uniqueValuesOfColumn = new ArrayList<>();
+        Enumeration<TableKey> keySet = factor.getFactorTable().keys();
+        while(keySet.hasMoreElements()){
+            TableKey currKey = keySet.nextElement();
+            String value = currKey.getKeys()[varIndex];
+            if(!uniqueValuesOfColumn.contains(value))
+                uniqueValuesOfColumn.add(value);
+        }
+        return uniqueValuesOfColumn.toArray(new String[0]);
+    }
+
+
+
+
+
+
+
 
     public void func3(String[] names, String[] truthTableArr){
         if(getProbabilityValue(names)){
@@ -456,7 +637,6 @@ public class BayesianNetwork {
             System.out.println(factorTable.get(tableKey));
         }
     }
-
 
 
     /*

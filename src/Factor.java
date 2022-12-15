@@ -6,6 +6,8 @@ public class Factor implements Cloneable{
 
     private String[] parents; //Factor node array of parents.
 
+    private String[] vars;
+
     private Hashtable<TableKey, Double> factorTable; //Factor node factor table!
 
     /**
@@ -18,6 +20,9 @@ public class Factor implements Cloneable{
         this.factorName = name;
         this.parents = parents;
         this.factorTable = factorTable;
+        this.vars = new String[parents.length + 1];
+        this.vars[0] = name;
+        System.arraycopy(parents, 0, this.vars, 1, this.vars.length - 1);
     }
 
 
@@ -143,10 +148,7 @@ public class Factor implements Cloneable{
      * @return The array of all the given factor's variables.
      */
     public String[] getFactorVars(){
-        String[] factorVars = new String[parents.length + 1];
-        factorVars[0] = factorName;
-        System.arraycopy(parents, 0, factorVars, 1, factorVars.length - 1);
-        return factorVars;
+        return this.vars;
     }
 
 
@@ -184,12 +186,16 @@ public class Factor implements Cloneable{
         this.parents = newParents;
     }
 
+    public void setVars(String[] newVars){
+        this.vars = newVars;
+    }
+
 
     /**
      * Sets the Factor's factor-table field.
      * @param newFactorTable new factor-table value.
      */
-    private void setFactorTable(Hashtable<TableKey, Double> newFactorTable){
+    public void setFactorTable(Hashtable<TableKey, Double> newFactorTable){
         this.factorTable = newFactorTable;
     }
 }

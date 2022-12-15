@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Implemented factor tables instantiation">
+    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Implemented hidden factor tables sorting(Required order of joining the factors)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/BayesianNetwork.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/BayesianNetwork.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Ex1.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Ex1.java" afterDir="false" />
@@ -117,7 +117,14 @@
       <option name="project" value="LOCAL" />
       <updated>1670869113777</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Implemented hidden factor tables sorting(Required order of joining the factors)">
+      <created>1670933430308</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1670933430308</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -137,7 +144,8 @@
     <MESSAGE value="Fixed logical bugs in function 1 and in factor building.&#10;Finalized documentation until function 1." />
     <MESSAGE value="Finalized and fixed bugs of permutation functions.&#10;bignet xml first function results tested and approved" />
     <MESSAGE value="Implemented factor tables instantiation" />
-    <option name="LAST_COMMIT_MESSAGE" value="Implemented factor tables instantiation" />
+    <MESSAGE value="Implemented hidden factor tables sorting(Required order of joining the factors)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Implemented hidden factor tables sorting(Required order of joining the factors)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -156,6 +164,7 @@
       <configuration name="Application">
         <watch expression="currVariable" language="JAVA" />
         <watch expression="factorTable" />
+        <watch expression="prevFactor.parents" />
       </configuration>
     </watches-manager>
   </component>
