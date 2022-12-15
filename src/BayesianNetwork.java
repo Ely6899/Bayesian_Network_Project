@@ -507,10 +507,6 @@ public class BayesianNetwork {
             permutateByOne(indexArr, outcomeCounts);
         }
 
-        /*
-        * Joined table calculations
-        * */
-
 
         currFactor.setFactorTable(joinedTable);
         currFactor.setVars(newTableVars.toArray(new String[0]));

@@ -76,7 +76,7 @@ public class Factor implements Cloneable{
         String[] factorVars = this.getFactorVars();
         int varIndex = 0;
 
-        //Find the given var's index from the String of vars(Will correspond to value on TableKey in the table).
+        //Find the given var's index from the String array of vars(Will correspond to value on TableKey in the table).
         for(int i = 0; i < factorVars.length; i++){
             if(factorVars[i].equals(var)){
                 varIndex = i;
@@ -85,7 +85,7 @@ public class Factor implements Cloneable{
         }
 
         Enumeration<TableKey> keySet = this.factorTable.keys(); //Key-set of the given factor table.
-        //Iterate through each key, and add specific key to table if the value of val corresponds to the value that was given as a parameter.
+        //Iterate through each key, and delete specific key to table if the value of val doesn't correspond to the value that was given as a parameter.
         //Current key checked.
         while(keySet.hasMoreElements()){
             TableKey currKey = keySet.nextElement();
@@ -93,6 +93,35 @@ public class Factor implements Cloneable{
                 this.factorTable.remove(currKey);
         }
 
+        Hashtable<TableKey, Double> tempTable = new Hashtable<>(); //New temp table for removing evidence column.
+        //This loop iterates after instantiation. Removes single value evidence column.
+        Enumeration<TableKey> newKeySet = this.factorTable.keys();
+        while(newKeySet.hasMoreElements()){
+            TableKey currKey = newKeySet.nextElement(); //Current original key
+            double probVal = this.factorTable.get(currKey); //Save original probability value to keep correct probability values.
+            String[] currVarArr = currKey.getKeys(); //Current key values.
+            String[] newKey = new String[currVarArr.length - 1]; //New array of values.
+            int insertionTemp = 0;
+
+            for(int i = 0; i < currVarArr.length; i++){
+                if(i != varIndex){
+                    newKey[insertionTemp++] = currVarArr[i];
+                }
+            }
+            tempTable.put(new TableKey(newKey), probVal);
+        }
+
+        //Section of editing the new variables of the new fully instantiated factorTable. Saves are local to given object.
+        String[] vars = this.getFactorVars(); //Variables of given factor table.
+        String[] newVars = new String[vars.length - 1]; //New variables of given factor table we wish to edit.
+
+        int valInsertionTemp = 0;
+        for (int i = 0; i < vars.length; i++) {
+            if (i != varIndex)
+                newVars[valInsertionTemp++] = vars[i];
+        }
+        this.setFactorTable(tempTable);
+        this.setVars(newVars);
     }
 
 
