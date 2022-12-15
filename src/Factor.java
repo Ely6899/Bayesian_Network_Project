@@ -114,14 +114,15 @@ public class Factor implements Cloneable{
         //Section of editing the new variables of the new fully instantiated factorTable. Saves are local to given object.
         String[] vars = this.getFactorVars(); //Variables of given factor table.
         String[] newVars = new String[vars.length - 1]; //New variables of given factor table we wish to edit.
-
         int valInsertionTemp = 0;
+
         for (int i = 0; i < vars.length; i++) {
             if (i != varIndex)
                 newVars[valInsertionTemp++] = vars[i];
         }
-        this.setFactorTable(tempTable);
-        this.setVars(newVars);
+
+        this.setFactorTable(tempTable); //Set new table to current table.
+        this.setVars(newVars); //Set new vars to current table.
     }
 
 

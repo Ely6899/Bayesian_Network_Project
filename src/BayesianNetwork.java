@@ -507,87 +507,69 @@ public class BayesianNetwork {
             permutateByOne(indexArr, outcomeCounts);
         }
 
+        getProductOfJoinedTable(prevFactor, currFactor, joinedTable, newTableVars);
 
         currFactor.setFactorTable(joinedTable);
         currFactor.setVars(newTableVars.toArray(new String[0]));
     }
 
-    private Double getProductOfJoinedKey(String[] keys, Factor prevFactor, Factor currFactor, ArrayList<String> newTableVars, String hidden) {
-        Double answer = 1.0;
-
-        //Value fetching from prevFactor.
-        //The same will be applied to currFactor.
-        ArrayList<Integer> currFactorVarIndices = new ArrayList<>();
+    private void getProductOfJoinedTable(Factor prevFactor, Factor currFactor, Hashtable<TableKey, Double> joinedTable, ArrayList<String> newTableVars) {
         String[] prevFactorVars = prevFactor.getFactorVars();
-        int lowerKeysIndex = 0;
-        int higherKeysIndex = 0;
-        for(int column = 0; column < prevFactorVars.length; column++){
-            if(newTableVars.contains(prevFactorVars[column])){
-                currFactorVarIndices.add(column);
-                higherKeysIndex++;
-            }
-        }
-
-        String[] newKeysPrevSplit = new String[higherKeysIndex - lowerKeysIndex];
-        System.arraycopy(keys, lowerKeysIndex, newKeysPrevSplit, lowerKeysIndex, higherKeysIndex - lowerKeysIndex); //New keys split to be compared.
-
-        Enumeration<TableKey> prevFactorKeys = prevFactor.getFactorTable().keys();
-        while(prevFactorKeys.hasMoreElements()){
-            String[] currKey = prevFactorKeys.nextElement().getKeys(); //Current key array of the table(full).
-            String[] filteredKey = new String[newKeysPrevSplit.length]; //New key after filtering relevant keys to the joint table(Ignore evidence).
-            int temp = 0;
-
-            for(int i = 0; i < currKey.length; i++){
-                //If current index represents a desired var.
-                if(currFactorVarIndices.contains(i)){
-                    filteredKey[temp] = currKey[i];
-                }
-            }
-            //If filtered key matches related filtered key in joint table multiply value to .
-            if(Arrays.equals(filteredKey, newKeysPrevSplit)){
-                answer *= prevFactor.getFactorTable().get(new TableKey(currKey));
-                break;
-            }
-        }
-
-
-        currFactorVarIndices.clear();
         String[] currFactorVars = currFactor.getFactorVars();
-        lowerKeysIndex = higherKeysIndex;
-        higherKeysIndex = keys.length;
+        String[] joinedTableVars = newTableVars.toArray(new String[0]);
 
-        for(int column = 0; column < currFactorVars.length; column++){
-            if(newTableVars.contains(currFactorVars[column]) && !currFactorVars[column].equals(hidden)){
-                currFactorVarIndices.add(column);
-            }
-        }
+        Hashtable<TableKey, Double> prevFactorTable = prevFactor.getFactorTable();
+        Hashtable<TableKey, Double> currFactorTable = currFactor.getFactorTable();
+        int subArrayEndIndex = prevFactorVars.length;
 
-        String[] newKeysCurrSplit = new String[higherKeysIndex - lowerKeysIndex];
-        int counter = 0;
-        //New keys split to be compared.
-        for(int i = lowerKeysIndex; i < higherKeysIndex; i++){
-            newKeysCurrSplit[counter++] = keys[i];
-        }
+        Enumeration<TableKey> prevKeys = prevFactorTable.keys();
+        Enumeration<TableKey> currKeys = currFactorTable.keys();
 
-        Enumeration<TableKey> currFactorKeys = currFactor.getFactorTable().keys();
-        while(currFactorKeys.hasMoreElements()){
-            String[] currKey = currFactorKeys.nextElement().getKeys(); //Current key array of the table(full).
-            String[] filteredKey = new String[newKeysCurrSplit.length]; //New key after filtering relevant keys to the joint table(Ignore evidence).
-            int temp = 0;
+        //Iteration through the first table in the multiplication.
+        while(prevKeys.hasMoreElements()){
+            TableKey key = prevKeys.nextElement();
+            String[] keyArr = key.getKeys();
+            double prob = prevFactorTable.get(key);
 
-            for(int i = 0; i < currKey.length; i++){
-                //If current index represents a desired var.
-                if(currFactorVarIndices.contains(i)){
-                    filteredKey[temp] = currKey[i];
+            Enumeration<TableKey> joinedKeys = joinedTable.keys();
+            while(joinedKeys.hasMoreElements()){
+                TableKey joinedKey = joinedKeys.nextElement();
+                double joinedTableProb = joinedTable.get(joinedKey);
+                String[] joinedKeysSubArray = Arrays.copyOfRange(joinedKey.getKeys(),0, subArrayEndIndex);
+                if(Arrays.equals(keyArr, joinedKeysSubArray)){
+                    joinedTable.put(joinedKey, joinedTableProb * prob);
                 }
             }
-            //If filtered key matches related filtered key in joint table multiply value to .
-            if(Arrays.equals(filteredKey, newKeysCurrSplit)){
-                answer *= currFactor.getFactorTable().get(new TableKey(currKey));
-                break;
+        }
+
+        int subArrayStartIndex = subArrayEndIndex - 1;
+        //Iteration through the second table in the multiplication
+        while(currKeys.hasMoreElements()){
+            TableKey key = currKeys.nextElement();
+            String[] originalOrderedValues = key.getKeys();
+            String[] orderedValues = new String[currFactorVars.length]; //Match value order to the one on joined table(Won't always be the same)
+            double prob = currFactorTable.get(key);
+
+            int insertionTemp = 0;
+            //Build correctly ordered values to be compared with joined table key.
+            for(int i = subArrayStartIndex; i < joinedTableVars.length; i++){
+                for(int j = 0; j < currFactorVars.length; j++){
+                    if(currFactorVars[j].equals(joinedTableVars[i])){
+                        orderedValues[insertionTemp++] = originalOrderedValues[j];
+                    }
+                }
+            }
+
+            Enumeration<TableKey> joinedKeys = joinedTable.keys();
+            while(joinedKeys.hasMoreElements()){
+                TableKey joinedKey = joinedKeys.nextElement();
+                double joinedTableProb = joinedTable.get(joinedKey);
+                String[] joinedKeysSubArray = Arrays.copyOfRange(joinedKey.getKeys(),subArrayStartIndex, joinedTableVars.length);
+                if(Arrays.equals(orderedValues, joinedKeysSubArray)){
+                    joinedTable.put(joinedKey, joinedTableProb * prob);
+                }
             }
         }
-        return answer;
     }
 
 

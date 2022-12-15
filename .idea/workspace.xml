@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Implemented simple table joining(without calculating values)">
+    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Improved instantiation function(Removes single valued evidence columns)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/BayesianNetwork.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/BayesianNetwork.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Ex1.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Ex1.java" afterDir="false" />
@@ -131,7 +131,14 @@
       <option name="project" value="LOCAL" />
       <updated>1671111460434</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Improved instantiation function(Removes single valued evidence columns)">
+      <created>1671118905777</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1671118905777</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -153,7 +160,8 @@
     <MESSAGE value="Implemented factor tables instantiation" />
     <MESSAGE value="Implemented hidden factor tables sorting(Required order of joining the factors)" />
     <MESSAGE value="Implemented simple table joining(without calculating values)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Implemented simple table joining(without calculating values)" />
+    <MESSAGE value="Improved instantiation function(Removes single valued evidence columns)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Improved instantiation function(Removes single valued evidence columns)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -166,11 +174,6 @@
           <properties class="java.util.ConcurrentModificationException" package="java.util" />
           <option name="timeStamp" value="12" />
         </breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/Factor.java</url>
-          <line>114</line>
-          <option name="timeStamp" value="43" />
-        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
