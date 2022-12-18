@@ -334,6 +334,9 @@ public class BayesianNetwork {
                 indexArr[j - 1] %= outcomeCounts[j - 1];
                 nextSwitch = indexArr[j - 1] == 0 && prevVal == outcomeCounts[j - 1] - 1 && prevVal != 0;
             }
+            else{
+                nextSwitch = (indexArr[j - 1] + 1 == outcomeCounts[j - 1]);
+            }
         }
     }
 
@@ -416,9 +419,9 @@ public class BayesianNetwork {
 
         //Loop iterates through all variable nodes. If a node isn't in the list, it is considered hidden.
         //This loop builds the hidden array.
-        for (VariableNode currVariable : variableNodes) {
-            if (!nameList.contains(currVariable.getVariableNodeName())) {
-                hidden[insertionTemp++] = currVariable.getVariableNodeName();
+        for (Factor currFactor : tempFactors) {
+            if (!nameList.contains(currFactor.getFactorName())) {
+                hidden[insertionTemp++] = currFactor.getFactorName();
             }
             if(insertionTemp == hidden.length)
                 break;
@@ -455,6 +458,8 @@ public class BayesianNetwork {
                     hiddenFactors.add(currFactor);
             }
 
+            if(hiddenFactors.size() == 0)
+                continue;
 
             Collections.sort(hiddenFactors, Factor.factorComparator); //Sort by table size and variable ASCII sum(ascending)
 
