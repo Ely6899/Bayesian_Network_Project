@@ -12,6 +12,14 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
 
+
+/**
+ * This is the primary class of the program, which builds and holds all the bayesian network data(Both Variable and Factor) as lists.
+ * In addition, it performs all algorithms, simple deduction(func1) and variable elimination(func2).
+ * It also contains helper functions which help the algorithms to perform correctly.
+ * At the start of the program, it also contains a function which parses the xml file given in the input of BayesianNetwork constructor.
+ * The BayesianNetwork constructor performs the entire network building.
+ */
 public class BayesianNetwork {
     //Nodes of the xml values as is.
     private final ArrayList<VariableNode> variableNodes;
@@ -96,9 +104,13 @@ public class BayesianNetwork {
                 String table = definitionElement.getElementsByTagName("TABLE").item(0).getTextContent(); //Probability values string.
                 String[] possibleOutcomes = new String[outcomeTagCount];
                 String[] possibleParents = new String[parentTagCount];
+
+                //Iterate though all possible parents and add them to the data.
                 for(int i = 0; i < parentTagCount; i++){
                     possibleParents[i] = definitionElement.getElementsByTagName("GIVEN").item(i).getTextContent();
                 }
+
+                //Iterate though all possible outcomes and add them to the data.
                 for(int j = 0; j < outcomeTagCount; j++){
                     possibleOutcomes[j] = vaElement.getElementsByTagName("OUTCOME").item(j).getTextContent();
                 }
@@ -157,6 +169,8 @@ public class BayesianNetwork {
      * This function iterates over all available options it can iterate through, given each
      * var's count of outcomes. The arrays are aligned in a matching order, since order of elements
      * is constant throughout the functions.
+     * This function fits the logic of building the factor tables, therefore it only works for building the factors.
+     * The function works for a single permutation given. It doesn't iterate through all possibilities.
      * @param indexArr Array of indices representing pointers to vars values in order.
      * @param outcomeCounts Array of the count of outcomes for each var in order(needed for modulu calculations).
      */
@@ -175,10 +189,10 @@ public class BayesianNetwork {
             nameArrHelperString[0] %= outcomeCounts[0];
 
             if(prevVal != 0 && prevVal == outcomeCounts[0] - 1){
-                permutateByOne(parentHelperArr, Arrays.copyOfRange(outcomeCounts, 1, outcomeCounts.length));
+                permutateByOne(parentHelperArr, Arrays.copyOfRange(outcomeCounts, 1, outcomeCounts.length)); //Use regular logic when necessary.
             }
             indexArr[0] = nameArrHelperString[0];
-            System.arraycopy(parentHelperArr, 0, indexArr, 1, indexArr.length - 1);
+            System.arraycopy(parentHelperArr, 0, indexArr, 1, indexArr.length - 1); //Save permutation changes.
         }
     }
 
@@ -205,11 +219,51 @@ public class BayesianNetwork {
      * @param names String array of vars from a given permutation.
      * @return true whenever a probability value can be fetched directly(without calculations) from the given names.
      */
-    private boolean getProbabilityValue(String[] names){
+    private boolean IsProbabilityValueDirect(String[] names){
         Factor factor = getFactorByName(names[0]);
-        String[] evidence = new String[names.length - 1];
-        System.arraycopy(names, 1 , evidence, 0, names.length - 1);
-        return Arrays.equals(factor.getFactorParents(), evidence);
+        String[] factorParents = factor.getFactorParents();
+        ArrayList<String> parentList = new ArrayList<>();
+        Collections.addAll(parentList, factorParents); //Add to arraylist all actual parents of relevant factor.
+
+        String[] queryParents = new String[names.length - 1];
+        System.arraycopy(names, 1, queryParents, 0, names.length - 1); //Save given query parents in separate array.
+
+        boolean allFound = true;
+        for(String givenParent: queryParents){
+            allFound = parentList.contains(givenParent);
+            if(!allFound)
+                break;
+        }
+
+        return allFound && queryParents.length == factorParents.length; //If only part of the parents are in the query, return false.
+    }
+
+
+    /**
+     * This functions handles fetching directly the probability value of a given query, if it is possible.
+     * @param names Variables of given query.
+     * @param truthValsArr Truth values of given query.
+     * @return Probability value of query directly from the factor table.
+     */
+    private double getDirectProbability(String[] names, String[] truthValsArr){
+        Factor factor = getFactorByName(names[0]);
+        Hashtable<TableKey, Double> factorTable = getFactorByName(names[0]).getFactorTable();
+
+        String[] factorParents = factor.getFactorParents();
+        String[] queryParents = new String[names.length - 1];
+        String[] fitOrderValues = new String[truthValsArr.length];
+
+        System.arraycopy(names, 1, queryParents, 0, names.length - 1);
+        fitOrderValues[0] = truthValsArr[0];
+        int tempCounter = 1;
+        for (String factorParent : factorParents) {
+            for (int j = 0; j < queryParents.length; j++) {
+                if (factorParent.equals(queryParents[j])) {
+                    fitOrderValues[tempCounter++] = truthValsArr[j];
+                }
+            }
+        }
+        return factorTable.get(new TableKey(fitOrderValues));
     }
 
 
@@ -224,7 +278,7 @@ public class BayesianNetwork {
      * purposes. The union of the vars and non-vars tables is done with the helper function tableUnion().
      * For each valid full permutation, we multiply each var in the permutation, with the given parents each has, while maintaining the truth
      * values for each var multiplied, throughout the entire multiplication. This is done in the helper function getValueFromGivenPermutation(),
-     * which also uses the helper function getProbabilityValue() for fetching the specific probability value given the vars values.
+     * which also uses the helper function IsProbabilityValueDirect() for fetching the specific probability value given the vars values.
      * In the end, after each iteration is done, normalize, and print the probability value, followed by the number of addition and multiplications,
      * respectively.
      * @param names Names of the given query.
@@ -235,10 +289,9 @@ public class BayesianNetwork {
         DecimalFormat decimalFormat = new DecimalFormat("#.#####");
 
         //If query can be obtainable directly
-        if (getProbabilityValue(names)) {
-            Hashtable<TableKey, Double> factorTable = getFactorByName(names[0]).getFactorTable();
-            TableKey tableKey = new TableKey(truthValsArr);
-            System.out.println(factorTable.get(tableKey) + ",0,0");
+        if (IsProbabilityValueDirect(names)) {
+            double probability = getDirectProbability(names, truthValsArr);
+            System.out.println(decimalFormat.format(probability) + ",0,0");
         } else {
             List<String> nameList = Arrays.asList(names);
             String[] nonVars = new String[count - names.length]; //Non-vars array.
@@ -254,8 +307,7 @@ public class BayesianNetwork {
                 }
             }
 
-            //int additionCountFromFormula = ((additionPermutationCount - 1) * getNodeByName(names[0]).getOutcomeCount()) + 1;//Last addition is normalization addition.
-            //int multiCountConstFromFormula = (count - 1) * additionPermutationCount * getNodeByName(names[0]).getOutcomeCount();
+
             double numerator = 0;
             double secondaryOptions = 0;
             int additionCount = 0, multiCount = 0;
@@ -311,32 +363,8 @@ public class BayesianNetwork {
                 }
             }
             double normalizationAlpha = numerator + secondaryOptions;
-            System.out.println(decimalFormat.format(numerator / normalizationAlpha)+","+(additionCount - 1)+","+multiCount);
-        }
-    }
-
-
-    /**
-     * Iterates the given index array by one. Iteration is pointed from the right to the left.
-     * @param indexArr Array of indices representing pointers to vars values in order.
-     * @param outcomeCounts Array of the count of outcomes for each var in order(needed for modulu calculations).
-     */
-    private void permutateByOne(int[] indexArr, int[] outcomeCounts){
-        int indexArrLength = indexArr.length;
-        int prevVal = indexArr[indexArrLength - 1];
-        indexArr[indexArrLength - 1] += 1;
-        indexArr[indexArrLength - 1] %= outcomeCounts[indexArrLength - 1];
-        boolean nextSwitch = true;
-        for(int j = indexArr.length - 1; j >=1; j--){
-            if((nextSwitch &&(indexArr[j] == 0 && prevVal == outcomeCounts[j] - 1))){
-                prevVal = indexArr[j - 1];
-                indexArr[j - 1] += 1;
-                indexArr[j - 1] %= outcomeCounts[j - 1];
-                nextSwitch = indexArr[j - 1] == 0 && prevVal == outcomeCounts[j - 1] - 1 && prevVal != 0;
-            }
-            else{
-                nextSwitch = (indexArr[j - 1] + 1 == outcomeCounts[j - 1]);
-            }
+            double answer = numerator / normalizationAlpha;
+            System.out.println(decimalFormat.format(answer)+","+(additionCount - 1)+","+multiCount);
         }
     }
 
@@ -376,7 +404,7 @@ public class BayesianNetwork {
                 vars[j] = currVar.getParents()[j - 1];
             }
 
-            if(getProbabilityValue(vars)){
+            if(IsProbabilityValueDirect(vars)){
                 String[] varsTruthTable = new String[vars.length];//Factor key to look for
 
                 //Get the truth values of each var, according to the input of the permutation table.
@@ -393,126 +421,149 @@ public class BayesianNetwork {
     /**
      * func2() calculates the probability of a given query, and its values by performing variable elimination on the factors,
      * which greatly reduces the number of calculations required to reach the answer.
+     * The orders of eliminations of the hiddens is sorted in alphabetical order.
+     * This functions uses the helper functions:
+     * getAncestorsOfNode(), findRelevantFactorsOfFunc2(), discardOneValued(), join(), eliminate(), getProductOfJoinedTable(),
+     * fromIndexToValuesTable(), getOutcomesFromGivenFactorColumn(), permutateByOne()
+     * Some of those functions are helpers of other helper functions.
      * @param names Names of the given query.
-     * @param truthTableArr The values given with the names in the same order.
+     * @param truthValsArr The values given with the names in the same order.
      */
-    public void func2(String[] names, String[] truthTableArr){
-        //Decimal format for correct answer printing.
+    public void func2(String[] names, String[] truthValsArr){
+        //Decimal format for correct answer printing(5 digits after the dot).
         DecimalFormat decimalFormat = new DecimalFormat("#.#####");
-
-        ArrayList<String> relevantFactors = findRelevantFactorsOfFunc2(names);
-
-        //Relevant data gathering.
-        ArrayList<Factor> tempFactors = new ArrayList<>();
-        for(Factor factor: factorNodes){
-            try {
-                if(relevantFactors.contains(factor.getFactorName()))
-                    tempFactors.add((Factor) factor.clone());
-            } catch (CloneNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
+        //If query can be obtainable directly
+        if (IsProbabilityValueDirect(names)) {
+            double probability = getDirectProbability(names, truthValsArr);
+            System.out.println(decimalFormat.format(probability) + ",0,0");
         }
+        else{
+            ArrayList<String> relevantFactors = findRelevantFactorsOfFunc2(names); //Stores only relevant factors which will be found by BFS algorithm.
 
-        List<String> nameList = Arrays.asList(names);
-        String[] hidden = new String[relevantFactors.size() - names.length]; //Non-vars array.
-        int insertionTemp = 0;
-
-        //Loop iterates through all variable nodes. If a node isn't in the list, it is considered hidden.
-        //This loop builds the hidden array.
-        for (Factor currFactor : tempFactors) {
-            if (!nameList.contains(currFactor.getFactorName())) {
-                hidden[insertionTemp++] = currFactor.getFactorName();
-            }
-            if(insertionTemp == hidden.length)
-                break;
-        }
-
-        String[] evidence = new String[names.length - 1];
-        System.arraycopy(names, 1, evidence, 0, evidence.length);
-        String[] query = new String[1];
-        query[0] = names[0];
-
-        //Loop of instantiations.
-        for(int temp = 0; temp < evidence.length; temp++){
-            String checkedVar = evidence[temp]; //Variable we wish to instantiate in tables
-            String checkedVarValue = truthTableArr[temp + 1]; //Value of the variable we wish to keep.
-            //Iterate through all factors of given evidence to filter.
-            for (Factor currFactor : tempFactors) {
-                if (currFactor.varInFactor(checkedVar))
-                    currFactor.instantiate(checkedVar, checkedVarValue);
-            }
-        }
-        discardOneValued(tempFactors);
-
-        Arrays.sort(hidden); //Sort hidden variables(For variable elimination alphabetical order)
-
-
-        int additionCounter = 0;
-        int multCount = 0;
-        for(String hiddenString: hidden) {
-            ArrayList<Factor> hiddenFactors = new ArrayList<>(); //List of all factors that contain the hidden value.
-
-            //Find all factors that contain the hidden evidence that will be eliminated
-            for (Factor currFactor : tempFactors) {
-                if (currFactor.varInFactor(hiddenString))
-                    hiddenFactors.add(currFactor);
-            }
-
-            if(hiddenFactors.size() == 0)
-                continue;
-
-            Collections.sort(hiddenFactors, Factor.factorComparator); //Sort by table size and variable ASCII sum(ascending)
-
-            if(hiddenFactors.size() > 1){
-                //Joining loop
-                for(int i = 1; i < hiddenFactors.size(); i++){
-                    multCount += join(hiddenFactors.get(i -1), hiddenFactors.get(i));
-                    tempFactors.remove(hiddenFactors.get(i - 1));
+            //Relevant data gathering.
+            ArrayList<Factor> tempFactors = new ArrayList<>(); //A copy of relevant factors. Makes sure original data is not modified.
+            for(Factor factor: factorNodes){
+                try {
+                    if(relevantFactors.contains(factor.getFactorName()))
+                        tempFactors.add((Factor) factor.clone()); //Factor will be added to our tempFactor list if it was found to be relevant.
+                } catch (CloneNotSupportedException e) {
+                    throw new RuntimeException(e);
                 }
             }
 
-            Factor eliminationFactor = hiddenFactors.get(hiddenFactors.size() - 1); //Last factor in the hidden factors is the one we remove the hidden column from.
-            String[] eliminatedVarOutcomes = getNodeByName(hiddenString).getPossibleOutcomes(); //All possible outcomes of hiddenString.
+            List<String> nameList = Arrays.asList(names);
+            String[] hidden = new String[relevantFactors.size() - names.length]; //Non-vars array.
+            int insertionTemp = 0;
 
-            additionCounter += eliminate(eliminationFactor, eliminatedVarOutcomes, hiddenString);
-            discardOneValued(tempFactors);
+            //Loop iterates through all variable nodes. If a node isn't in the list, it is considered hidden.
+            //This loop builds the hidden array.
+            for (Factor currFactor : tempFactors) {
+                if (!nameList.contains(currFactor.getFactorName())) {
+                    hidden[insertionTemp++] = currFactor.getFactorName();
+                }
+                if(insertionTemp == hidden.length)
+                    break;
+            }
+
+            String[] evidence = new String[names.length - 1];
+            System.arraycopy(names, 1, evidence, 0, evidence.length);
+            String[] query = new String[1];
+            query[0] = names[0];
+
+            //Loop of instantiations.
+            for(int temp = 0; temp < evidence.length; temp++){
+                String checkedVar = evidence[temp]; //Variable we wish to instantiate in tables
+                String checkedVarValue = truthValsArr[temp + 1]; //Value of the variable we wish to keep.
+                //Iterate through all factors of given evidence to filter.
+                for (Factor currFactor : tempFactors) {
+                    if (currFactor.varInFactor(checkedVar))
+                        currFactor.instantiate(checkedVar, checkedVarValue);
+                }
+            }
+            discardOneValued(tempFactors); //One valued factors after instantiation can be removed from the algorithm entirely.
+
+            Arrays.sort(hidden); //Sort hidden variables(For variable elimination alphabetical order)
+
+            int additionCounter = 0;
+            int multCount = 0;
+
+            //In every iteration, perform joins and elimination on the hidden variable in the iteration.
+            for(String hiddenString: hidden) {
+                ArrayList<Factor> hiddenFactors = new ArrayList<>(); //List of all factors that contain the hidden value.
+
+                //Find all factors that contain the hidden evidence that will be eliminated
+                for (Factor currFactor : tempFactors) {
+                    if (currFactor.varInFactor(hiddenString))
+                        hiddenFactors.add(currFactor);
+                }
+
+                if(hiddenFactors.size() == 0) //If there are no factors left for the hidden array, skip it.
+                    continue;
+
+                Collections.sort(hiddenFactors, Factor.factorComparator); //Sort by table size and variable ASCII sum when necessary(ascending)
+
+                if(hiddenFactors.size() > 1){
+                    //Joining loop
+                    for(int i = 1; i < hiddenFactors.size(); i++){
+                        multCount += join(hiddenFactors.get(i -1), hiddenFactors.get(i)); //Perform join on two tables in the order.
+                        tempFactors.remove(hiddenFactors.get(i - 1)); //Remove previous table from entire data, to replicate table joining.
+                    }
+                }
+
+                Factor eliminationFactor = hiddenFactors.get(hiddenFactors.size() - 1); //Last factor in the hidden factors is the one we remove the hidden column from.
+
+                additionCounter += eliminate(eliminationFactor, hiddenString); //Eliminate the hidden variable from the factor.
+                discardOneValued(tempFactors); //One valued factors left after joining can be discarded.
+            }
+
+            ArrayList<Factor> queryFactors = new ArrayList<>(); //Factors containing the query variable.
+            //Loop to add all factors which contain the query variable (should be 2)
+            for(Factor tempFactor: tempFactors){
+                if(tempFactor.varInFactor(query[0]))
+                    queryFactors.add(tempFactor);
+            }
+            Collections.sort(queryFactors, Factor.factorComparator); //Sort by table size and variable ASCII sum(ascending)
+
+            //Joining loop
+            for(int i = 1; i < queryFactors.size(); i++){
+                multCount += join(queryFactors.get(i -1), queryFactors.get(i)); //Last joins on query tables.
+            }
+
+            Factor finalFactor = queryFactors.get(queryFactors.size() - 1); //Last factor in the hidden factors is the one we remove the hidden column from.
+            Hashtable<TableKey, Double> finalTable = finalFactor.getFactorTable();
+            double normalizationSum = 0.0;
+
+            Enumeration<TableKey> keySetOfFinalFactor = finalFactor.getFactorTable().keys();
+
+            //Normalization of the final table.
+            while(keySetOfFinalFactor.hasMoreElements()){
+                normalizationSum += finalTable.get(keySetOfFinalFactor.nextElement());
+                additionCounter++;
+            }
+
+
+            Enumeration<TableKey> keySetOfFinalFactorNormalization = finalFactor.getFactorTable().keys();
+            //Apply normalization on the probabilities.
+            while(keySetOfFinalFactorNormalization.hasMoreElements()){
+                TableKey currKey = keySetOfFinalFactorNormalization.nextElement();
+                double rowValue = finalTable.get(currKey);
+                finalTable.put(currKey, rowValue / normalizationSum);
+            }
+            String[] queryValue = new String[1];
+            queryValue[0] = truthValsArr[0]; //The desired query value.
+            double answer = finalTable.get(new TableKey(queryValue)); //Answer according to query value.
+            System.out.println(decimalFormat.format(answer)+","+(additionCounter - 1)+","+multCount);
         }
-
-        ArrayList<Factor> queryFactors = new ArrayList<>();
-        for(Factor tempFactor: tempFactors){
-            if(tempFactor.varInFactor(query[0]))
-                queryFactors.add(tempFactor);
-        }
-        Collections.sort(queryFactors, Factor.factorComparator); //Sort by table size and variable ASCII sum(ascending)
-
-        //Joining loop
-        for(int i = 1; i < queryFactors.size(); i++){
-            multCount += join(queryFactors.get(i -1), queryFactors.get(i));
-        }
-
-        Factor finalFactor = queryFactors.get(queryFactors.size() - 1); //Last factor in the hidden factors is the one we remove the hidden column from.
-        Hashtable<TableKey, Double> finalTable = finalFactor.getFactorTable();
-        double normalizationSum = 0.0;
-
-        Enumeration<TableKey> keySetOfFinalFactor = finalFactor.getFactorTable().keys();
-        while(keySetOfFinalFactor.hasMoreElements()){
-            normalizationSum += finalTable.get(keySetOfFinalFactor.nextElement());
-            additionCounter++;
-        }
-
-        Enumeration<TableKey> keySetOfFinalFactorNormalization = finalFactor.getFactorTable().keys();
-        while(keySetOfFinalFactorNormalization.hasMoreElements()){
-            TableKey currKey = keySetOfFinalFactorNormalization.nextElement();
-            double rowValue = finalTable.get(currKey);
-            finalTable.put(currKey, rowValue / normalizationSum);
-        }
-        String[] queryValue = new String[1];
-        queryValue[0] = truthTableArr[0];
-        double answer = finalTable.get(new TableKey(queryValue));
-        System.out.println(decimalFormat.format(answer)+","+(additionCounter - 1)+","+multCount);
     }
 
 
+    /**
+     * Applies reverse BFS on the variable node to find its ancestors.
+     * Required to filter out unnecessary factors from te variable elimination algorithm.
+     * Meaning, that every node which isn't an ancestor of the query and evidence variables, can be discarded from the algorithm.
+     * @param node Variable node with to find its ancestors.
+     * @return An array list of the ancestors of the given node.
+     */
     private ArrayList<String> getAncestorsOfNode(VariableNode node){
         ArrayList<String> ancestors = new ArrayList<>();
         Queue<String> traversalQueue = new LinkedList<>();
@@ -526,6 +577,13 @@ public class BayesianNetwork {
         return ancestors;
     }
 
+
+    /**
+     * This function uses getAncestorsOfNode() to find the relevant nodes names and saves them in the array list.
+     * The main difference is that this function takes care of duplicate finds, therefore, it returns the unique names.
+     * @param names The variable names of the given query.
+     * @return Arraylist of relevant Strings which are required for the algorithm.
+     */
     private ArrayList<String> findRelevantFactorsOfFunc2(String[] names){
         ArrayList<String> relevantFactors = new ArrayList<>();
         for(String name: names){
@@ -539,13 +597,24 @@ public class BayesianNetwork {
     }
 
 
+    /**
+     * Deletes any factor which has 1 value, they can be discarded.
+     * @param tempFactors Arraylist of the factors of algorithm 2.
+     */
     private void discardOneValued(ArrayList<Factor> tempFactors){
         tempFactors.removeIf(factor -> factor.getFactorSize() == 1);
     }
 
+
+    /**
+     * Performs a single join between 2 factors, while changing the second factor with the new factor.
+     * @param prevFactor First factor in multiplication to be joined.
+     * @param currFactor Second factor in multiplication to be joined.
+     * @return The number of multiplications the join had.
+     */
     private int join(Factor prevFactor, Factor currFactor){
-        String[] currVars = currFactor.getFactorVars();
-        String[] prevVars = prevFactor.getFactorVars();
+        String[] currVars = currFactor.getFactorVars(); //Variables of the second factor.
+        String[] prevVars = prevFactor.getFactorVars(); //Variables of the first factor.
         Hashtable<String, String[]> varOutComes = new Hashtable<>(); //HashTable containing each var's possible outcomes.
         ArrayList<String> newTableVars = new ArrayList<>(); //Keeps the order of insertions in check.
 
@@ -557,7 +626,7 @@ public class BayesianNetwork {
             }
         }
 
-        //Updates relevant vars of joined table from the prev factor.
+        //Updates relevant vars of joined table from the prev factor. Makes sure duplicates aren't added twice.
         for(String var: currVars){
             if(!varOutComes.containsKey(var)){
                 newTableVars.add(var);
@@ -565,11 +634,14 @@ public class BayesianNetwork {
             }
         }
 
-        int[] outcomeCounts = new int[newTableVars.size()];
+        int[] outcomeCounts = new int[newTableVars.size()]; //Array of outcomes of the new table variables.
+
+        //Build the outcomeCounts array.
         for(int i = 0; i < varOutComes.size(); i++){
             outcomeCounts[i] = varOutComes.get(newTableVars.get(i)).length;
         }
-        int[] indexArr = new int[outcomeCounts.length];
+
+        int[] indexArr = new int[outcomeCounts.length]; //Array of indices which represents values of keys.
 
         //Iterate through outcomeCounts array to get new joined table's number of rows.
         int rows = 1;
@@ -585,18 +657,29 @@ public class BayesianNetwork {
             permutateByOne(indexArr, outcomeCounts);
         }
 
-        int mults = getProductOfJoinedTable(prevFactor, currFactor, joinedTable, newTableVars);
+        int mults = getProductOfJoinedTable(prevFactor, currFactor, joinedTable, newTableVars); //Applies the multiplication of the tables.
 
+        //Set the second factor's table and variables in the table.
         currFactor.setFactorTable(joinedTable);
         currFactor.setVars(newTableVars.toArray(new String[0]));
         return mults;
     }
 
-    private int eliminate(Factor factor, String[] outcomes, String hiddenString){
-        int varIndex = 0;
-        String[] factorVars = factor.getFactorVars();
-        String[] newFactorVars = new String[factorVars.length - 1];
+
+    /**
+     * Performs the variable elimination of a given factor, eliminating the given hiddenString.
+     * @param factor Factor we with to eliminate variable from.
+     * @param hiddenString Variable we wish to eliminate from the factor given.
+     * @return Number of additions performed in the elimination.
+     */
+    private int eliminate(Factor factor, String hiddenString){
+        int varIndex = 0; //Index of the variable we wish to eliminate.
+        String[] factorVars = factor.getFactorVars(); //The variables of the factor.
+        String[] newFactorVars = new String[factorVars.length - 1]; //The new vars after elimination.
         int insertionTemp = 0;
+
+        //Iterate through the variables to find the index of the variable we wish to eliminate.
+        //And add to newFactorVars the variables we want to keep.
         for(int i = 0; i < factorVars.length; i++){
             if(factorVars[i].equals(hiddenString)){
                 varIndex = i;
@@ -604,30 +687,33 @@ public class BayesianNetwork {
                 newFactorVars[insertionTemp++] = factorVars[i];
             }
         }
-        Hashtable<TableKey, Double> currTable = factor.getFactorTable();
-        Hashtable<TableKey, Double> newEliminatedTable = new Hashtable<>();
+
+        Hashtable<TableKey, Double> currTable = factor.getFactorTable(); //Table we eliminate from.
+        Hashtable<TableKey, Double> newEliminatedTable = new Hashtable<>(); //New table after elimination.
         int additionCounter = 0;
         Enumeration<TableKey> keySet = currTable.keys();
 
-
+        //Iterate through the keys of the table.
         while(keySet.hasMoreElements()){
             TableKey currTableKey = keySet.nextElement();
             String[] currKeyArr = currTableKey.getKeys();
             String[] newVals = new String[newFactorVars.length];
             int insertNewValsTemp = 0;
 
+            //Iterate to build the values of the relevant variables.
             for(int i = 0; i < currKeyArr.length; i++){
                 if(i != varIndex)
                     newVals[insertNewValsTemp++] = currKeyArr[i];
             }
 
+            //If the new vals is not in the joined table in the first place, skip it in the loop.
             if(newEliminatedTable.containsKey(new TableKey(newVals))){
                 continue;
             }
 
-            Enumeration<TableKey> keySetTemp = currTable.keys();
+            Enumeration<TableKey> keySetTemp = currTable.keys(); //Will iterate through the current table again. It is a sub iteration.
             double sum = 0.0;
-            int additions = 0;
+            int additions = 0; //Local additions of the given key.
             while(keySetTemp.hasMoreElements()){
                 TableKey currTableKeyTemp = keySetTemp.nextElement();
                 String[] currKeyArrTemp = currTableKeyTemp.getKeys();
@@ -639,6 +725,7 @@ public class BayesianNetwork {
                         newValsTemp[insertNewValsTemp2++] = currKeyArrTemp[i];
                 }
 
+                //If the new array of values matches the relevant array of values in the beginning, it fits the addition.
                 if(Arrays.equals(newValsTemp, newVals)){
                     sum += currTable.get(currTableKeyTemp);
                     additions += 1;
@@ -648,11 +735,21 @@ public class BayesianNetwork {
             newEliminatedTable.put(new TableKey(newVals), sum);
             additionCounter += additions - 1;
         }
+        //Set the factor's table to the new eliminated factor. Both table and vars like.
         factor.setVars(newFactorVars);
         factor.setFactorTable(newEliminatedTable);
         return additionCounter;
     }
 
+
+    /**
+     * Performs the after joining multiplication.
+     * @param prevFactor First factor of joining.
+     * @param currFactor Second factor of joining.
+     * @param joinedTable The new simple joined table.
+     * @param newTableVars The new variables of the new joined table.
+     * @return The amount of multiplications done by the joining.
+     */
     private int getProductOfJoinedTable(Factor prevFactor, Factor currFactor, Hashtable<TableKey, Double> joinedTable, ArrayList<String> newTableVars) {
         String[] prevFactorVars = prevFactor.getFactorVars();
         String[] currFactorVars = currFactor.getFactorVars();
@@ -667,11 +764,11 @@ public class BayesianNetwork {
 
         int multiCount = 0;
         //Iteration through the first table in the multiplication.
+        //Multiply the values of the first table to the values of the
         while(prevKeys.hasMoreElements()){
             TableKey key = prevKeys.nextElement();
             String[] keyArr = key.getKeys();
             double prob = prevFactorTable.get(key);
-
             Enumeration<TableKey> joinedKeys = joinedTable.keys();
             while(joinedKeys.hasMoreElements()){
                 TableKey joinedKey = joinedKeys.nextElement();
@@ -684,6 +781,7 @@ public class BayesianNetwork {
         }
 
         //Iterate through second table keys.
+        //Multiply the second table's values to the joined table.
         while(currKeys.hasMoreElements()){
             TableKey currKey = currKeys.nextElement();
             String[] currKeyArr = currKey.getKeys();
@@ -699,6 +797,7 @@ public class BayesianNetwork {
                 int tempCounter = 0;
 
                 //Build the newOrderedVals for each iteration of joinedTable keys.
+                //Order of keys int the second table won't fit order of keys in the joined table. reorganize values to match arrays.
                 for (String currFactorVar : currFactorVars) {
                     for (int joinedColumn = 0; joinedColumn < joinedTableVars.length; joinedColumn++) {
                         if (currFactorVar.equals(joinedTableVars[joinedColumn])) {
@@ -706,7 +805,6 @@ public class BayesianNetwork {
                         }
                     }
                 }
-
                 if(Arrays.equals(newOrderedVals, currKeyArr)){
                     joinedTable.put(joinedKey, joinedTableProb * prob);
                     multiCount++;
@@ -714,38 +812,17 @@ public class BayesianNetwork {
             }
         }
         return multiCount;
-        /*int subArrayStartIndex = subArrayEndIndex - 1;
-        //Iteration through the second table in the multiplication
-        while(currKeys.hasMoreElements()){
-            TableKey key = currKeys.nextElement();
-            String[] originalOrderedValues = key.getKeys();
-            String[] orderedValues = new String[currFactorVars.length]; //Match value order to the one on joined table(Won't always be the same)
-            double prob = currFactorTable.get(key);
-
-            int insertionTemp = 0;
-            //Build correctly ordered values to be compared with joined table key.
-            //TODO fix ordering of values(Values aren't necessarily order together, Another array of joined var order required.)
-            for(int i = subArrayStartIndex; i < joinedTableVars.length; i++){
-                for(int j = 0; j < currFactorVars.length; j++){
-                    if(currFactorVars[j].equals(joinedTableVars[i])){
-                        orderedValues[insertionTemp++] = originalOrderedValues[j];
-                    }
-                }
-            }
-
-            Enumeration<TableKey> joinedKeys = joinedTable.keys();
-            while(joinedKeys.hasMoreElements()){
-                TableKey joinedKey = joinedKeys.nextElement();
-                double joinedTableProb = joinedTable.get(joinedKey);
-                String[] joinedKeysSubArray = Arrays.copyOfRange(joinedKey.getKeys(),subArrayStartIndex, joinedTableVars.length);
-                if(Arrays.equals(orderedValues, joinedKeysSubArray)){
-                    joinedTable.put(joinedKey, joinedTableProb * prob);
-                }
-            }
-        }*/
     }
 
 
+    /**
+     * Converts an array of indices representing keys, to actual array of keys, which will then transform it to
+     * a TableKey instance which is valid as a key of a factor table.
+     * @param indexArr Array of indices representing key values.
+     * @param varList List of variables.
+     * @param varTable A table of variables and their possible outcomes.
+     * @return A new TableKey of relevant key values, which will be used as a key in a factor table.
+     */
     private TableKey fromIndexToValuesTable(int[] indexArr, ArrayList<String> varList, Hashtable<String, String[]> varTable){
         String[] values = new String[indexArr.length];
         for(int i = 0; i < varList.size(); i++){
@@ -754,8 +831,17 @@ public class BayesianNetwork {
         return new TableKey(values);
     }
 
+
+    /**
+     * Fetches the outcomes of a given column in a factor table.
+     * @param factor Factor instance.
+     * @param vars Variables of the factor.
+     * @param var Variable we wish to get its outcomes
+     * @return An array of outcomes of a variable from a given factor.
+     */
     private String[] getOutcomesFromGivenFactorColumn(Factor factor, String[] vars, String var){
         int varIndex = -1;
+        //Find the index of the variable we wish to find its values.
         for(int i = 0; i < vars.length; i++){
             if(vars[i].equals(var)){
                 varIndex = i;
@@ -763,7 +849,7 @@ public class BayesianNetwork {
             }
         }
 
-        ArrayList<String> uniqueValuesOfColumn = new ArrayList<>();
+        ArrayList<String> uniqueValuesOfColumn = new ArrayList<>(); //List of found values.
         Enumeration<TableKey> keySet = factor.getFactorTable().keys();
         while(keySet.hasMoreElements()){
             TableKey currKey = keySet.nextElement();
@@ -776,19 +862,42 @@ public class BayesianNetwork {
 
 
 
-
-
-
-
-
     public void func3(String[] names, String[] truthTableArr){
-        if(getProbabilityValue(names)){
+        if(IsProbabilityValueDirect(names)){
             Hashtable<TableKey, Double> factorTable = getFactorByName(names[0]).getFactorTable();
             TableKey tableKey = new TableKey(truthTableArr);
             System.out.println(factorTable.get(tableKey));
         }
     }
 
+
+
+
+    /**
+     * Iterates the given index array by one. Iteration is pointed from the right to the left.
+     * Important for factor building and rebuilding.
+     * As well as permuting through all possible permutations.
+     * @param indexArr Array of indices representing pointers to vars values in order.
+     * @param outcomeCounts Array of the count of outcomes for each var in order(needed for modulu calculations).
+     */
+    private void permutateByOne(int[] indexArr, int[] outcomeCounts){
+        int indexArrLength = indexArr.length;
+        int prevVal = indexArr[indexArrLength - 1];
+        indexArr[indexArrLength - 1] += 1;
+        indexArr[indexArrLength - 1] %= outcomeCounts[indexArrLength - 1];
+        boolean nextSwitch = true;
+        for(int j = indexArr.length - 1; j >=1; j--){
+            if((nextSwitch &&(indexArr[j] == 0 && prevVal == outcomeCounts[j] - 1))){
+                prevVal = indexArr[j - 1];
+                indexArr[j - 1] += 1;
+                indexArr[j - 1] %= outcomeCounts[j - 1];
+                nextSwitch = indexArr[j - 1] == 0 && prevVal == outcomeCounts[j - 1] - 1 && prevVal != 0;
+            }
+            else{
+                nextSwitch = (indexArr[j - 1] + 1 == outcomeCounts[j - 1]);
+            }
+        }
+    }
 
     /*
     * Getters of BayesianNetwork class
@@ -821,23 +930,6 @@ public class BayesianNetwork {
                 return getNodeByIndex(i);
         }
         return null;
-    }
-
-
-    /**
-     * Gets the parents of a given variable node in a form of the parent nodes
-     * in an array.
-     * @param variable A variable node which we need its parents from.
-     * @return An array of variable nodes, which represent the parents of the node
-     * we gave in the input.
-     */
-    private VariableNode[] getParentsOfNode(VariableNode variable){
-        String[] parentsString = variable.getParents();
-        VariableNode[] parents = new VariableNode[variable.getParentCount()];
-        for(int i = 0; i < variable.getParentCount(); i++){
-            parents[i] = getNodeByName(parentsString[i]);
-        }
-        return parents;
     }
 
 

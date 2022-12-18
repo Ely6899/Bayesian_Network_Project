@@ -1,5 +1,10 @@
 import java.util.Arrays;
 
+
+/**
+ * TableKey class is a class which represents the key of every factor table.
+ * It encapsulates an array of strings which represents the values of the variables in a specific row in order.
+ */
 public class TableKey {
     private final String[] keys; //Represents an array of query truth values. Used as a key for factor tables.
 
@@ -34,6 +39,11 @@ public class TableKey {
         return Arrays.hashCode(keys);
     }
 
+
+    /**
+     * Gets the keys array of the TableKey instance.
+     * @return Array of strings representing truth values of a factor table row.
+     */
     public String[] getKeys(){
         return this.keys;
     }

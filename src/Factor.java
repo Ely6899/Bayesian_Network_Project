@@ -1,6 +1,12 @@
 import java.util.*;
 import java.util.Comparator;
 
+
+/**
+ * This class is the main data holder of the factor tables for the algorithms. It holds every essential data for the algorithms to use,
+ * with the main one being the factor table, which holds the probabilities of each node, in the correct logical order, in a Hash-Table.
+ * Each instance of Factor is build based on the corresponding data of the VariableNode instance.
+ */
 public class Factor implements Cloneable{
     private final String factorName; //Factor node name.
 
@@ -53,7 +59,8 @@ public class Factor implements Cloneable{
 
 
     /**
-     * Performs comparison between two factor tables in relation to table row count.
+     * Performs comparison between two factor tables in relation to table row count
+     * and variable ascii value sum when 2 tables have the same amount of rows.
      */
     public static Comparator<Factor> factorComparator = (factor1, factor2) -> {
         int sizeFactor1 = factor1.getFactorSize();
@@ -71,7 +78,7 @@ public class Factor implements Cloneable{
 
     /**
      * Performs instantiation of a single factor, by filtering the given var, with the value given in the val parameter.
-     * @param var Variable we wish to instantiate.
+     * @param var Variable we wish to instantiate in the table.
      * @param val Value of the variable we wish to instantiate. Meaning, filter the variable by given value.
      */
     public void instantiate(String var, String val){
@@ -129,7 +136,7 @@ public class Factor implements Cloneable{
 
 
     /**
-     * Checks whenever
+     * Checks whenever a given variable is a column in the table.
      * @param var Variable to search.
      * @return true whenever the variable is located in given Factor instance. false otherwise.
      */
@@ -209,6 +216,10 @@ public class Factor implements Cloneable{
         return sum;
     }
 
+    /*
+     * Setters of Factor class
+     * */
+
 
     /**
      * Sets the parents array of a given Factor with the new newParents parameter.
@@ -218,6 +229,11 @@ public class Factor implements Cloneable{
         this.parents = newParents;
     }
 
+
+    /**
+     * Sets the vars array of a given Factor instance.
+     * @param newVars New variables we with to put in given Factor instance.
+     */
     public void setVars(String[] newVars){
         this.vars = newVars;
     }
@@ -225,7 +241,7 @@ public class Factor implements Cloneable{
 
     /**
      * Sets the Factor's factor-table field.
-     * @param newFactorTable new factor-table value.
+     * @param newFactorTable new factor-table value. Meaning, a new table for the given Factor instance.
      */
     public void setFactorTable(Hashtable<TableKey, Double> newFactorTable){
         this.factorTable = newFactorTable;

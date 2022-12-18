@@ -1,5 +1,12 @@
 import java.util.Arrays;
 
+
+/**
+ * Variable node is a class which holds all primitive data fetched from the xml file the input requested to get data from.
+ * It assumes correctness of input in the input file, therefore, no checks are written.
+ * Variable node also simplifies the probability values to be an array of doubles, yet keeps them as an array.
+ * This class is essentially a database of the xml data, which will be improved upon in the Factor class.
+ */
 public class VariableNode {
     private final String nodeName; //Node main name
 
@@ -126,20 +133,11 @@ public class VariableNode {
         return probabilityValues;
     }
 
-    /**
-     * Returns a probability value, given an index of the array.
-     * @param index Index of a probability value.
-     * @return Probability value at given index.
-     * @throws IndexOutOfBoundsException Whenever the index doesn't exist in array.
-     */
-    public double getProbabilityAtIndex(int index) throws IndexOutOfBoundsException{
-        try{
-            return probabilityValues[index];
-        } catch (IndexOutOfBoundsException e){
-            throw new IndexOutOfBoundsException(e.getMessage());
-        }
-    }
 
+    /**
+     * Gets the number of probabilities the variable holds.
+     * @return Number of probabilities in the given VariableNode instance.
+     */
     public int getNumberOfProbabilities(){
         return probabilityValues.length;
     }
