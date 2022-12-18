@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Improved instantiation function(Removes single valued evidence columns)">
+    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Implemented join multiplication">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/BayesianNetwork.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/BayesianNetwork.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Ex1.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Ex1.java" afterDir="false" />
@@ -138,7 +138,14 @@
       <option name="project" value="LOCAL" />
       <updated>1671118905777</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Implemented join multiplication">
+      <created>1671126209523</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1671126209523</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -161,7 +168,8 @@
     <MESSAGE value="Implemented hidden factor tables sorting(Required order of joining the factors)" />
     <MESSAGE value="Implemented simple table joining(without calculating values)" />
     <MESSAGE value="Improved instantiation function(Removes single valued evidence columns)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Improved instantiation function(Removes single valued evidence columns)" />
+    <MESSAGE value="Implemented join multiplication" />
+    <option name="LAST_COMMIT_MESSAGE" value="Implemented join multiplication" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -174,12 +182,15 @@
           <properties class="java.util.ConcurrentModificationException" package="java.util" />
           <option name="timeStamp" value="12" />
         </breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/BayesianNetwork.java</url>
+          <line>487</line>
+          <option name="timeStamp" value="37" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="Application">
-        <watch expression="currVariable" language="JAVA" />
-        <watch expression="factorTable" />
         <watch expression="prevFactor.parents" />
       </configuration>
     </watches-manager>

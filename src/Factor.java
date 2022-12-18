@@ -58,12 +58,14 @@ public class Factor implements Cloneable{
     public static Comparator<Factor> factorComparator = (factor1, factor2) -> {
         int sizeFactor1 = factor1.getFactorSize();
         int sizeFactor2 = factor2.getFactorSize();
-
-        int asciiFactor1 = factor1.getAsciiSumOfVars();
-        int asciiFactor2 = factor2.getAsciiSumOfVars();
-
-        //Ascending order
-        return (sizeFactor1 - sizeFactor2) + (asciiFactor1 - asciiFactor2);
+        if(sizeFactor1 != sizeFactor2){
+            return sizeFactor1 - sizeFactor2;
+        }
+        else{
+            int asciiFactor1 = factor1.getAsciiSumOfVars();
+            int asciiFactor2 = factor2.getAsciiSumOfVars();
+            return asciiFactor1 - asciiFactor2;
+        }
     };
 
 
