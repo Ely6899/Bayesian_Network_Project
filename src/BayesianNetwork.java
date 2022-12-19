@@ -57,7 +57,7 @@ public class BayesianNetwork {
      * @return Document object, capable of reading through a xml file.
      */
     private Document parseXML(String xmlName){
-        File xmlFile = new File("src/" + xmlName);
+        File xmlFile = new File(xmlName);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder;
         try {
@@ -283,15 +283,16 @@ public class BayesianNetwork {
      * respectively.
      * @param names Names of the given query.
      * @param truthValsArr The values given with the names in the same order.
+     * @return A string of the answer.
      */
-    public void func1(String[] names, String[] truthValsArr) {
+    public String func1(String[] names, String[] truthValsArr) {
         //Decimal format for correct answer printing.
         DecimalFormat decimalFormat = new DecimalFormat("#.#####");
 
         //If query can be obtainable directly
         if (IsProbabilityValueDirect(names)) {
             double probability = getDirectProbability(names, truthValsArr);
-            System.out.println(decimalFormat.format(probability) + ",0,0");
+            return decimalFormat.format(probability) + "0,0";
         } else {
             List<String> nameList = Arrays.asList(names);
             String[] nonVars = new String[count - names.length]; //Non-vars array.
@@ -364,7 +365,7 @@ public class BayesianNetwork {
             }
             double normalizationAlpha = numerator + secondaryOptions;
             double answer = numerator / normalizationAlpha;
-            System.out.println(decimalFormat.format(answer)+","+(additionCount - 1)+","+multiCount);
+            return decimalFormat.format(answer) + "," + (additionCount - 1)+ "," + multiCount;
         }
     }
 
@@ -428,14 +429,15 @@ public class BayesianNetwork {
      * Some of those functions are helpers of other helper functions.
      * @param names Names of the given query.
      * @param truthValsArr The values given with the names in the same order.
+     * @return A string of the answer.
      */
-    public void func2(String[] names, String[] truthValsArr){
+    public String func2(String[] names, String[] truthValsArr){
         //Decimal format for correct answer printing(5 digits after the dot).
         DecimalFormat decimalFormat = new DecimalFormat("#.#####");
         //If query can be obtainable directly
         if (IsProbabilityValueDirect(names)) {
             double probability = getDirectProbability(names, truthValsArr);
-            System.out.println(decimalFormat.format(probability) + ",0,0");
+            return decimalFormat.format(probability) + "0,0";
         }
         else{
             ArrayList<String> relevantFactors = findRelevantFactorsOfFunc2(names); //Stores only relevant factors which will be found by BFS algorithm.
@@ -552,7 +554,7 @@ public class BayesianNetwork {
             String[] queryValue = new String[1];
             queryValue[0] = truthValsArr[0]; //The desired query value.
             double answer = finalTable.get(new TableKey(queryValue)); //Answer according to query value.
-            System.out.println(decimalFormat.format(answer)+","+(additionCounter - 1)+","+multCount);
+            return decimalFormat.format(answer)+","+(additionCounter - 1)+","+multCount;
         }
     }
 
@@ -862,11 +864,16 @@ public class BayesianNetwork {
 
 
 
-    public void func3(String[] names, String[] truthTableArr){
-        if(IsProbabilityValueDirect(names)){
-            Hashtable<TableKey, Double> factorTable = getFactorByName(names[0]).getFactorTable();
-            TableKey tableKey = new TableKey(truthTableArr);
-            System.out.println(factorTable.get(tableKey));
+    public String func3(String[] names, String[] truthValsArr){
+        //Decimal format for correct answer printing(5 digits after the dot).
+        DecimalFormat decimalFormat = new DecimalFormat("#.#####");
+        //If query can be obtainable directly
+        if (IsProbabilityValueDirect(names)) {
+            double probability = getDirectProbability(names, truthValsArr);
+            return decimalFormat.format(probability) + "0,0";
+        }
+        else{
+            return "";
         }
     }
 

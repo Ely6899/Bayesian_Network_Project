@@ -4,12 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Fixed joined table building bug.">
+    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Finished documentation of the second algorithm&#10;Fixed function of getting values directly.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/BayesianNetwork.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/BayesianNetwork.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Ex1.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Ex1.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Factor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Factor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/TableKey.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/TableKey.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VariableNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/VariableNode.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,19 +41,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;TODO_SCOPE&quot;: &quot;All Places&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/ely6899/IdeaProjects/BayesianNetworkProject/src&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.toDoOptions&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "TODO_SCOPE": "All Places",
+    "last_opened_file_path": "/home/ely6899/IdeaProjects/BayesianNetworkProject/src",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "terminal"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="" />
@@ -163,7 +162,14 @@
       <option name="project" value="LOCAL" />
       <updated>1671366582143</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Finished documentation of the second algorithm&#10;Fixed function of getting values directly.">
+      <created>1671396547655</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1671396547655</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -189,7 +195,8 @@
     <MESSAGE value="Implemented join multiplication" />
     <MESSAGE value="Fixed join bug. Implemented BFS ancestor search, fixed eliminate counter" />
     <MESSAGE value="Fixed joined table building bug." />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed joined table building bug." />
+    <MESSAGE value="Finished documentation of the second algorithm&#10;Fixed function of getting values directly." />
+    <option name="LAST_COMMIT_MESSAGE" value="Finished documentation of the second algorithm&#10;Fixed function of getting values directly." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -202,20 +209,6 @@
           <properties class="java.util.ConcurrentModificationException" package="java.util" />
           <option name="timeStamp" value="12" />
         </breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/BayesianNetwork.java</url>
-          <line>658</line>
-          <option name="timeStamp" value="48" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-method">
-          <url>file://$PROJECT_DIR$/src/BayesianNetwork.java</url>
-          <line>247</line>
-          <properties class="BayesianNetwork" method="getDirectProbability">
-            <option name="EMULATED" value="true" />
-            <option name="WATCH_EXIT" value="false" />
-          </properties>
-          <option name="timeStamp" value="50" />
-        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>

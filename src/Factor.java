@@ -49,8 +49,7 @@ public class Factor implements Cloneable{
         try{
             factorClone = (Factor) super.clone();
             factorClone.setParents(this.getFactorParents().clone());
-            //noinspection unchecked
-            factorClone.setFactorTable((Hashtable<TableKey, Double>) this.getFactorTable().clone());
+            factorClone.setFactorTable(new Hashtable<>(this.getFactorTable()));
         } catch (CloneNotSupportedException e){
             e.printStackTrace();
         }

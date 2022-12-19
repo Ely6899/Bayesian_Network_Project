@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -54,9 +51,11 @@ public class Ex1 {
     private static void readFromXmlInputFile(String input){
         BufferedReader br;
         BayesianNetwork bayesianNetwork;
+        FileOutputStream fileOutputStream;
         try {
             //let BufferedReader read the content of the given input file.
-            br = new BufferedReader(new FileReader("src/"+input));
+            br = new BufferedReader(new FileReader(input));
+            fileOutputStream = new FileOutputStream("output.txt");
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -79,17 +78,20 @@ public class Ex1 {
                 try {
                     char funcInput = line.charAt(line.length() - 1); //Function number input.
                     String query = line.substring(0,line.length() - 2); //Query string input.
-
+                    String answer;
                     //Switch given an input number.
                     switch (funcInput){
                         case '1':
-                            bayesianNetwork.func1(getQueryNames(query), getQueryIndex(query));
+                            answer = bayesianNetwork.func1(getQueryNames(query), getQueryIndex(query)) + "\n";
+                            fileOutputStream.write(answer.getBytes());
                             break;
                         case '2':
-                            bayesianNetwork.func2(getQueryNames(query), getQueryIndex(query));
+                            answer = bayesianNetwork.func2(getQueryNames(query), getQueryIndex(query)) + "\n";
+                            fileOutputStream.write(answer.getBytes());
                             break;
                         case '3':
-                            bayesianNetwork.func3(getQueryNames(query), getQueryIndex(query));
+                            answer = bayesianNetwork.func3(getQueryNames(query), getQueryIndex(query)) + "\n";
+                            fileOutputStream.write(answer.getBytes());
                             break;
                         default:
                             System.out.println("Invalid input");
@@ -100,9 +102,10 @@ public class Ex1 {
                     throw new RuntimeException(e);
                 }
             }
-        } finally {
+        }finally {
             try {
                 br.close();
+                fileOutputStream.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
