@@ -62,6 +62,12 @@ public class VariableNode {
         return values;
     }
 
+
+    /**
+     * The comparator works by sorting 2 variables by the amount of neighbors in ascending order.
+     * Therefore, it will give in a loop, a list of variables, sorted by the amount of parents.
+     * Amount of parents can also be considered the number of inward neighbors to the variable.
+     */
     public static Comparator<VariableNode> variableNodeComparator = Comparator.comparingInt(VariableNode::getParentCount);
 
 
