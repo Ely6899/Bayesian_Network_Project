@@ -1,4 +1,5 @@
 import java.util.Arrays;
+import java.util.Comparator;
 
 
 /**
@@ -60,6 +61,8 @@ public class VariableNode {
         }
         return values;
     }
+
+    public static Comparator<VariableNode> variableNodeComparator = Comparator.comparingInt(VariableNode::getParentCount);
 
 
     /*

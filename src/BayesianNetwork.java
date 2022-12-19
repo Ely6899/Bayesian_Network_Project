@@ -502,7 +502,7 @@ public class BayesianNetwork {
                 if(hiddenFactors.size() == 0) //If there are no factors left for the hidden array, skip it.
                     continue;
 
-                Collections.sort(hiddenFactors, Factor.factorComparator); //Sort by table size and variable ASCII sum when necessary(ascending)
+                hiddenFactors.sort(Factor.factorComparator); //Sort by table size and variable ASCII sum when necessary(ascending)
 
                 if(hiddenFactors.size() > 1){
                     //Joining loop
@@ -524,7 +524,7 @@ public class BayesianNetwork {
                 if(tempFactor.varInFactor(query[0]))
                     queryFactors.add(tempFactor);
             }
-            Collections.sort(queryFactors, Factor.factorComparator); //Sort by table size and variable ASCII sum(ascending)
+            queryFactors.sort(Factor.factorComparator); //Sort by table size and variable ASCII sum(ascending)
 
             //Joining loop
             for(int i = 1; i < queryFactors.size(); i++){
@@ -873,7 +873,151 @@ public class BayesianNetwork {
             return decimalFormat.format(probability) + "0,0";
         }
         else{
-            return "";
+            ArrayList<String> relevantFactors = findRelevantFactorsOfFunc2(names); //Stores only relevant factors which will be found by BFS algorithm.
+
+            //Relevant data gathering.
+            ArrayList<Factor> tempFactors = new ArrayList<>(); //A copy of relevant factors. Makes sure original data is not modified.
+            for(Factor factor: factorNodes){
+                try {
+                    if(relevantFactors.contains(factor.getFactorName()))
+                        tempFactors.add((Factor) factor.clone()); //Factor will be added to our tempFactor list if it was found to be relevant.
+                } catch (CloneNotSupportedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            List<String> nameList = Arrays.asList(names);
+            String[] hidden = new String[relevantFactors.size() - names.length]; //Non-vars array.
+            int insertionTemp = 0;
+
+            //Loop iterates through all variable nodes. If a node isn't in the list, it is considered hidden.
+            //This loop builds the hidden array.
+            for (Factor currFactor : tempFactors) {
+                if (!nameList.contains(currFactor.getFactorName())) {
+                    hidden[insertionTemp++] = currFactor.getFactorName();
+                }
+                if(insertionTemp == hidden.length)
+                    break;
+            }
+
+            String[] evidence = new String[names.length - 1];
+            System.arraycopy(names, 1, evidence, 0, evidence.length);
+            String[] query = new String[1];
+            query[0] = names[0];
+
+            //Loop of instantiations.
+            for(int temp = 0; temp < evidence.length; temp++){
+                String checkedVar = evidence[temp]; //Variable we wish to instantiate in tables
+                String checkedVarValue = truthValsArr[temp + 1]; //Value of the variable we wish to keep.
+                //Iterate through all factors of given evidence to filter.
+                for (Factor currFactor : tempFactors) {
+                    if (currFactor.varInFactor(checkedVar))
+                        currFactor.instantiate(checkedVar, checkedVarValue);
+                }
+            }
+            discardOneValued(tempFactors); //One valued factors after instantiation can be removed from the algorithm entirely.
+
+            hiddenVariablesEliminationSorting(hidden);//Sort hidden variables(For variable elimination alphabetical order)
+
+            int additionCounter = 0;
+            int multCount = 0;
+
+            //In every iteration, perform joins and elimination on the hidden variable in the iteration.
+            for(String hiddenString: hidden) {
+                ArrayList<Factor> hiddenFactors = new ArrayList<>(); //List of all factors that contain the hidden value.
+
+                //Find all factors that contain the hidden evidence that will be eliminated
+                for (Factor currFactor : tempFactors) {
+                    if (currFactor.varInFactor(hiddenString))
+                        hiddenFactors.add(currFactor);
+                }
+
+                if(hiddenFactors.size() == 0) //If there are no factors left for the hidden array, skip it.
+                    continue;
+
+                hiddenFactors.sort(Factor.factorComparator); //Sort by table size and variable ASCII sum when necessary(ascending)
+
+                if(hiddenFactors.size() > 1){
+                    //Joining loop
+                    for(int i = 1; i < hiddenFactors.size(); i++){
+                        multCount += join(hiddenFactors.get(i -1), hiddenFactors.get(i)); //Perform join on two tables in the order.
+                        tempFactors.remove(hiddenFactors.get(i - 1)); //Remove previous table from entire data, to replicate table joining.
+                    }
+                }
+
+                Factor eliminationFactor = hiddenFactors.get(hiddenFactors.size() - 1); //Last factor in the hidden factors is the one we remove the hidden column from.
+
+                additionCounter += eliminate(eliminationFactor, hiddenString); //Eliminate the hidden variable from the factor.
+                discardOneValued(tempFactors); //One valued factors left after joining can be discarded.
+            }
+
+            ArrayList<Factor> queryFactors = new ArrayList<>(); //Factors containing the query variable.
+            //Loop to add all factors which contain the query variable (should be 2)
+            for(Factor tempFactor: tempFactors){
+                if(tempFactor.varInFactor(query[0]))
+                    queryFactors.add(tempFactor);
+            }
+            queryFactors.sort(Factor.factorComparator); //Sort by table size and variable ASCII sum(ascending)
+
+            //Joining loop
+            for(int i = 1; i < queryFactors.size(); i++){
+                multCount += join(queryFactors.get(i -1), queryFactors.get(i)); //Last joins on query tables.
+            }
+
+            Factor finalFactor = queryFactors.get(queryFactors.size() - 1); //Last factor in the hidden factors is the one we remove the hidden column from.
+            Hashtable<TableKey, Double> finalTable = finalFactor.getFactorTable();
+            double normalizationSum = 0.0;
+
+            Enumeration<TableKey> keySetOfFinalFactor = finalFactor.getFactorTable().keys();
+
+            //Normalization of the final table.
+            while(keySetOfFinalFactor.hasMoreElements()){
+                normalizationSum += finalTable.get(keySetOfFinalFactor.nextElement());
+                additionCounter++;
+            }
+
+
+            Enumeration<TableKey> keySetOfFinalFactorNormalization = finalFactor.getFactorTable().keys();
+            //Apply normalization on the probabilities.
+            while(keySetOfFinalFactorNormalization.hasMoreElements()){
+                TableKey currKey = keySetOfFinalFactorNormalization.nextElement();
+                double rowValue = finalTable.get(currKey);
+                finalTable.put(currKey, rowValue / normalizationSum);
+            }
+            String[] queryValue = new String[1];
+            queryValue[0] = truthValsArr[0]; //The desired query value.
+            double answer = finalTable.get(new TableKey(queryValue)); //Answer according to query value.
+            return decimalFormat.format(answer)+","+(additionCounter - 1)+","+multCount;
+        }
+    }
+
+
+    /**
+     * The heuristic logic used for the algorithm is the min-neighbors one.
+     * Meaning, it decides the order of elimination by sorting each variable's number of inward neighbors.
+     * This function takes care of the sorting of the nodes themselves, the sorter used is
+     * implemented in the VariableNode class.
+     *
+     * @param hidden Array of hidden variables in strings.
+     */
+    private void hiddenVariablesEliminationSorting(String[] hidden){
+        Arrays.sort(hidden); //Sort alphabetically the hidden array.
+
+        List<String> hiddenList = Arrays.asList(hidden); //Used for checking containment.
+        List<VariableNode> hiddenNodes = new ArrayList<>(); //New list we wish to make.
+
+        //Iteration which adds the nodes relevant according to the hidden list.
+        for(VariableNode variableNode: variableNodes){
+            if(hiddenList.contains(variableNode.getVariableNodeName())){
+                hiddenNodes.add(variableNode);
+            }
+        }
+
+        hiddenNodes.sort(VariableNode.variableNodeComparator); //Sorts the variables themselves.
+
+        //Override given values with new ones in order given by the comparator.
+        for(int j = 0; j < hidden.length; j++){
+            hidden[j] = hiddenNodes.get(j).getVariableNodeName();
         }
     }
 

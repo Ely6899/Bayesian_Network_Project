@@ -46,15 +46,14 @@ public class Ex1 {
      * Reads an input text file which needs to contain the xml file we read from,
      * and it needs to contain probability queries followed by a number indicating the function used to
      * calculate the probability of the given query.
-     * @param input Input text file. Must contain in the first line the xml file we wish to read from.
      */
-    private static void readFromXmlInputFile(String input){
+    private static void readFromXmlInputFile(){
         BufferedReader br;
         BayesianNetwork bayesianNetwork;
         FileOutputStream fileOutputStream;
         try {
             //let BufferedReader read the content of the given input file.
-            br = new BufferedReader(new FileReader(input));
+            br = new BufferedReader(new FileReader("input.txt"));
             fileOutputStream = new FileOutputStream("output.txt");
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
@@ -114,6 +113,6 @@ public class Ex1 {
 
     //Main will run the xml reading function, which will parse the input, the XML, and run through the input file.
     public static void main(String[] args) {
-        readFromXmlInputFile("input.txt");
+        readFromXmlInputFile();
     }
 }
