@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Implemented writing to output.txt file the results.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/BayesianNetwork.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/BayesianNetwork.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Ex1.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Ex1.java" afterDir="false" />
+    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Implemented third function, using the min-neighbors heuristic logic">
       <change beforePath="$PROJECT_DIR$/src/VariableNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/VariableNode.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -176,7 +173,14 @@
       <option name="project" value="LOCAL" />
       <updated>1671441475924</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Implemented third function, using the min-neighbors heuristic logic">
+      <created>1671445101943</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1671445101943</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -204,7 +208,8 @@
     <MESSAGE value="Fixed joined table building bug." />
     <MESSAGE value="Finished documentation of the second algorithm&#10;Fixed function of getting values directly." />
     <MESSAGE value="Implemented writing to output.txt file the results." />
-    <option name="LAST_COMMIT_MESSAGE" value="Implemented writing to output.txt file the results." />
+    <MESSAGE value="Implemented third function, using the min-neighbors heuristic logic" />
+    <option name="LAST_COMMIT_MESSAGE" value="Implemented third function, using the min-neighbors heuristic logic" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
