@@ -292,7 +292,7 @@ public class BayesianNetwork {
         //If query can be obtainable directly
         if (IsProbabilityValueDirect(names)) {
             double probability = getDirectProbability(names, truthValsArr);
-            return decimalFormat.format(probability) + "0,0";
+            return decimalFormat.format(probability) + ",0,0";
         } else {
             List<String> nameList = Arrays.asList(names);
             String[] nonVars = new String[count - names.length]; //Non-vars array.
@@ -437,7 +437,7 @@ public class BayesianNetwork {
         //If query can be obtainable directly
         if (IsProbabilityValueDirect(names)) {
             double probability = getDirectProbability(names, truthValsArr);
-            return decimalFormat.format(probability) + "0,0";
+            return decimalFormat.format(probability) + ",0,0";
         }
         else{
             ArrayList<String> relevantFactors = findRelevantFactorsOfFunc2(names); //Stores only relevant factors which will be found by BFS algorithm.
@@ -870,7 +870,7 @@ public class BayesianNetwork {
         //If query can be obtainable directly
         if (IsProbabilityValueDirect(names)) {
             double probability = getDirectProbability(names, truthValsArr);
-            return decimalFormat.format(probability) + "0,0";
+            return decimalFormat.format(probability) + ",0,0";
         }
         else{
             ArrayList<String> relevantFactors = findRelevantFactorsOfFunc2(names); //Stores only relevant factors which will be found by BFS algorithm.

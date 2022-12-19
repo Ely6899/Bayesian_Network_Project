@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Implemented third function, using the min-neighbors heuristic logic">
-      <change beforePath="$PROJECT_DIR$/src/VariableNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/VariableNode.java" afterDir="false" />
-    </list>
+    <list default="true" id="151d08eb-3cc3-4618-b9cd-7769511e60fd" name="Changes" comment="Added documentation to comparator of VariableNode" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -180,7 +178,21 @@
       <option name="project" value="LOCAL" />
       <updated>1671445101943</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="Added documentation to comparator of VariableNode">
+      <created>1671445587988</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1671445587988</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Added documentation to comparator of VariableNode">
+      <created>1671445593016</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1671445593016</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -209,7 +221,8 @@
     <MESSAGE value="Finished documentation of the second algorithm&#10;Fixed function of getting values directly." />
     <MESSAGE value="Implemented writing to output.txt file the results." />
     <MESSAGE value="Implemented third function, using the min-neighbors heuristic logic" />
-    <option name="LAST_COMMIT_MESSAGE" value="Implemented third function, using the min-neighbors heuristic logic" />
+    <MESSAGE value="Added documentation to comparator of VariableNode" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added documentation to comparator of VariableNode" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
