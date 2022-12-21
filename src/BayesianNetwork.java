@@ -249,21 +249,17 @@ public class BayesianNetwork {
         Factor factor = getFactorByName(names[0]);
         Hashtable<TableKey, Double> factorTable = getFactorByName(names[0]).getFactorTable();
 
-        String[] factorParents = factor.getFactorParents();
-        String[] queryParents = new String[names.length - 1];
-        String[] fitOrderValues = new String[truthValsArr.length];
+        String[] factorVars = factor.getFactorVars();
+        String[] newVals = new String[truthValsArr.length];
 
-        System.arraycopy(names, 1, queryParents, 0, names.length - 1);
-        fitOrderValues[0] = truthValsArr[0];
-        int tempCounter = 1;
-        for (String factorParent : factorParents) {
-            for (int j = 0; j < queryParents.length; j++) {
-                if (factorParent.equals(queryParents[j])) {
-                    fitOrderValues[tempCounter++] = truthValsArr[j];
+        for(int i = 0; i < factorVars.length; i++){
+            for(int j = 0; j < names.length; j++){
+                if(names[j].equals(factorVars[i])){
+                    newVals[i] = truthValsArr[j];
                 }
             }
         }
-        return factorTable.get(new TableKey(fitOrderValues));
+        return factorTable.get(new TableKey(newVals));
     }
 
 
@@ -1033,19 +1029,21 @@ public class BayesianNetwork {
      */
     private void permutateByOne(int[] indexArr, int[] outcomeCounts){
         int indexArrLength = indexArr.length;
-        int prevVal = indexArr[indexArrLength - 1];
-        indexArr[indexArrLength - 1] += 1;
-        indexArr[indexArrLength - 1] %= outcomeCounts[indexArrLength - 1];
-        boolean nextSwitch = true;
-        for(int j = indexArr.length - 1; j >=1; j--){
-            if((nextSwitch &&(indexArr[j] == 0 && prevVal == outcomeCounts[j] - 1))){
-                prevVal = indexArr[j - 1];
-                indexArr[j - 1] += 1;
-                indexArr[j - 1] %= outcomeCounts[j - 1];
-                nextSwitch = indexArr[j - 1] == 0 && prevVal == outcomeCounts[j - 1] - 1 && prevVal != 0;
-            }
-            else{
-                nextSwitch = (indexArr[j - 1] + 1 == outcomeCounts[j - 1]);
+        if(indexArrLength != 0){
+            int prevVal = indexArr[indexArrLength - 1];
+            indexArr[indexArrLength - 1] += 1;
+            indexArr[indexArrLength - 1] %= outcomeCounts[indexArrLength - 1];
+            boolean nextSwitch = true;
+            for(int j = indexArr.length - 1; j >=1; j--){
+                if((nextSwitch &&(indexArr[j] == 0 && prevVal == outcomeCounts[j] - 1))){
+                    prevVal = indexArr[j - 1];
+                    indexArr[j - 1] += 1;
+                    indexArr[j - 1] %= outcomeCounts[j - 1];
+                    nextSwitch = indexArr[j - 1] == 0 && prevVal == outcomeCounts[j - 1] - 1 && prevVal != 0;
+                }
+                else{
+                    nextSwitch = (indexArr[j - 1] + 1 == outcomeCounts[j - 1]);
+                }
             }
         }
     }
